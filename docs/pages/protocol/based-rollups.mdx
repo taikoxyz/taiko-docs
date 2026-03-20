@@ -1,0 +1,94 @@
+# Based Rollups
+
+How based rollup sequencing works.
+
+---
+
+A **based rollup** is a rollup whose block sequencing is driven by the underlying L1 chain rather than a separate sequencer. In Taiko's case, Ethereum L1 validators determine the ordering of L2 blocks. This design eliminates the need for a centralized sequencer and makes the rollup a natural extension of Ethereum.
+
+The term "based" was coined by Ethereum researcher Justin Drake to describe rollups that delegate sequencing to L1.
+
+## What "Based" Means
+
+In a traditional rollup, a dedicated sequencer (often a single operator) collects user transactions, orders them, and submits them to L1. The sequencer has full control over transaction ordering, which creates centralization risks.
+
+In a based rollup:
+
+- **L1 validators are the sequencers.** Ethereum's existing block proposers include rollup transactions in L1 blocks. The ordering of rollup transactions is determined by the same consensus mechanism that orders all Ethereum transactions.
+- **Anyone can propose blocks.** Block proposal is permissionless. Any actor can call `proposeBatch` on the TaikoInbox contract to submit a batch of L2 blocks.
+- **No separate consensus.** There is no additional proof-of-stake network, no sequencer committee, and no external coordination layer. The rollup inherits Ethereum's consensus directly.
+
+## How Block Proposing Works on Taiko
+
+Proposers interact with the **TaikoInbox** contract deployed on Ethereum L1. The process works as follows:
+
+1. A proposer collects pending L2 transactions and constructs one or more L2 blocks.
+2. The proposer calls `proposeBatch` on TaikoInbox, submitting the block data via calldata or blobs.
+3. The batch is included in an Ethereum L1 block, and its ordering is determined by Ethereum's consensus.
+4. A liveness bond (in TAIKO tokens) is required from the proposer to prevent spam.
+
+Because proposal is permissionless, multiple proposers can compete to submit batches. The transaction ordering within each batch is determined by the proposer, but the ordering of batches themselves follows Ethereum's block ordering.
+
+:::info
+Under the Pacaya fork, blocks are proposed in **batches** rather than individually. A single batch can contain many blocks, making frequent small blocks economically viable -- a key requirement for preconfirmations.
+:::
+
+## Comparison with Other Sequencing Models
+
+| Property | Based Rollup (L1-Sequenced) | Centralized Sequencer | Shared Sequencer |
+|----------|----------------------------|-----------------------|------------------|
+| **Sequencing** | Ethereum validators | Single operator | Multi-party committee |
+| **Censorship resistance** | Inherits Ethereum's guarantees | Sequencer can censor | Depends on operator set |
+| **Liveness** | As long as Ethereum is live | Sequencer downtime halts the rollup | Depends on sequencer uptime |
+| **Decentralization** | Maximum -- uses existing Ethereum validators | Single point of failure | Additional trust layer |
+| **MEV flow** | MEV flows to Ethereum validators | MEV captured by sequencer | MEV captured by sequencer set |
+| **Infrastructure** | No extra infrastructure needed | Requires running a separate sequencer | Requires coordination mechanism |
+| **Simplicity** | Minimal added complexity | Moderate | Higher complexity |
+
+## Benefits of Based Sequencing
+
+### Inherits Ethereum's Security and Liveness
+
+A based rollup is live whenever Ethereum is live. There is no separate operator whose downtime could halt the chain. The rollup cannot suffer from sequencer failures, because there is no sequencer to fail.
+
+### Censorship Resistance
+
+Ethereum's validator set is large and decentralized. No single validator (or small group of validators) can persistently censor transactions. Based rollups inherit this property directly -- if a transaction can be included on Ethereum, it can be included on Taiko.
+
+### No Single Point of Failure
+
+Centralized sequencers create a single point of failure for liveness, censorship resistance, and MEV extraction. Based rollups eliminate this entirely by distributing sequencing across Ethereum's full validator set.
+
+### Economic Alignment with Ethereum
+
+MEV generated on the rollup flows to Ethereum validators rather than being captured by a centralized sequencer. This reinforces Ethereum's economic security and aligns the rollup's incentives with the base layer.
+
+## Forced Inclusion
+
+Even during the current preconfirmation phase (where whitelisted preconfers sequence blocks), Taiko maintains censorship resistance through the **ForcedInclusionStore** contract. This contract allows any user to submit a transaction and force its inclusion in the L2 chain, regardless of whether the current preconfer chooses to include it.
+
+This mechanism ensures that the protocol preserves its based rollup properties even when block building is temporarily delegated to permissioned preconfers.
+
+:::warning
+Forced inclusion adds latency compared to normal transaction inclusion. It is designed as a censorship-resistance backstop, not as the primary inclusion path.
+:::
+
+## Trade-offs
+
+Based rollups are not without trade-offs:
+
+**Block time is bounded by L1.** Without preconfirmations, the fastest a based rollup can confirm transactions is one L1 block time (12 seconds). Taiko addresses this with [based preconfirmations](/protocol/preconfirmations), which provide sub-second effective confirmation times.
+
+**MEV considerations.** Because L1 validators control transaction ordering, MEV extraction dynamics on the rollup are tied to Ethereum's MEV landscape. Proposers (or preconfers) can still extract MEV within the batches they construct, but batch ordering follows L1 consensus.
+
+**Proposer competition.** Multiple proposers may attempt to submit batches simultaneously, leading to wasted gas for losing proposals. In practice, the preconfirmation system coordinates this by electing a single preconfer per epoch.
+
+## Summary
+
+Based rollups represent the simplest and most Ethereum-aligned approach to rollup sequencing. By delegating sequencing to L1 validators, Taiko achieves:
+
+- Maximum decentralization with no additional trust assumptions
+- Full censorship resistance inherited from Ethereum
+- Liveness guaranteed as long as Ethereum is live
+- Economic alignment with the base layer
+- Minimal infrastructure complexity

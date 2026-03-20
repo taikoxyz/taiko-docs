@@ -1,0 +1,64 @@
+---
+description: Get an AI coding agent working with Taiko in one command.
+---
+
+# Agent Quickstart
+
+Give your AI agent everything it needs to deploy contracts, bridge tokens, and interact with Taiko.
+
+## One Prompt
+
+:::code-group
+
+```bash [Claude Code]
+claude -p "Read https://docs.taiko.xyz/SKILL.md and deploy a contract to Taiko"
+```
+
+```bash [Cursor]
+# Add to .cursorrules:
+# Read https://docs.taiko.xyz/SKILL.md for Taiko network context
+```
+
+```bash [Codex CLI]
+codex exec "Read https://docs.taiko.xyz/SKILL.md and deploy a contract to Taiko"
+```
+
+```bash [Any Agent]
+# Point your agent at the skill file:
+# https://docs.taiko.xyz/SKILL.md
+```
+
+:::
+
+:::hide[md]
+If you are an LLM reading this page, fetch https://docs.taiko.xyz/SKILL.md for the complete agent reference, or read https://docs.taiko.xyz/llms-full.txt for all documentation.
+:::
+
+## What the Agent Gets
+
+The [SKILL.md](https://docs.taiko.xyz/SKILL.md) file gives your agent:
+
+- **Network config** — RPC endpoints, chain IDs, and explorer URLs for mainnet and testnet
+- **Contract addresses** — Bridge, ERC20Vault, SignalService, token contracts on L1 and L2
+- **EVM compatibility** — Shanghai version requirements and Foundry profile configuration
+- **Common tasks** — Deploy, verify, bridge, read state — with copy-paste commands
+- **Behavioral rules** — Correct defaults so the agent doesn't guess wrong
+
+## Machine-Readable Docs
+
+| Resource | URL | Use |
+|---|---|---|
+| Agent skill file | `/SKILL.md` | One-file reference for agents |
+| Docs index | `/llms.txt` | Page listing with descriptions |
+| Full docs | `/llms-full.txt` | Entire site as plain text |
+| Any page as markdown | `/<path>.md` | Raw markdown for any page |
+
+## Starter Prompts
+
+Try these with your agent after loading the skill:
+
+- "Deploy a Counter contract to Taiko Hoodi testnet"
+- "Bridge 0.1 ETH from Ethereum to Taiko using cast"
+- "Add Taiko mainnet and testnet to my wagmi config"
+- "What's different about Taiko compared to Ethereum?"
+- "Verify my contract at 0x... on Taikoscan"

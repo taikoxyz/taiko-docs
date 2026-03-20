@@ -1,0 +1,154 @@
+# Bridge Tokens
+
+Bridge ERC-20 tokens from Ethereum to Taiko programmatically.
+
+:::code-group
+
+```txt [Agent]
+Read https://docs.taiko.xyz/SKILL.md and bridge ERC20 tokens from Ethereum to Taiko programmatically
+```
+
+```txt [Human]
+Follow the step-by-step guide below.
+```
+
+:::
+
+## Contract addresses
+
+### Mainnet (Ethereum L1 to Taiko L2)
+
+| Contract | Address |
+| --- | --- |
+| L1 Bridge | `0xd60247c6848B7Ca29eDdF63AA924E53dB6Ddd8EC` |
+| L1 ERC20Vault | `0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab` |
+| L1 SignalService | `0x9e0a24964e5397B566c1ed39258e21aB5E35C77C` |
+| L2 Bridge | `0x1670000000000000000000000000000000000001` |
+| L2 ERC20Vault | `0x1670000000000000000000000000000000000002` |
+| L2 SignalService | `0x1670000000000000000000000000000000000005` |
+
+### Hoodi Testnet
+
+| Contract | Address |
+| --- | --- |
+| L1 Bridge (Hoodi) | `0x6a4cf607DaC2C4784B7D934Bcb3AD7F2ED18Ed80` |
+| L1 ERC20Vault (Hoodi) | `0x0857cd029937E7a119e492434c71CB9a9Bb59aB0` |
+
+## Bridge ERC-20 tokens (L1 to L2)
+
+::::steps
+
+### Approve the ERC20Vault
+
+The ERC20Vault pulls tokens from your wallet. Approve it to spend the amount you want to bridge.
+
+:::code-group
+
+```js [ethers.js]
+import { ethers } from "ethers";
+
+const provider = new ethers.JsonRpcProvider("https://eth.llamarpc.com");
+const signer = new ethers.Wallet(process.env.PRIVATE_KEY, provider);
+
+const ERC20_ABI = ["function approve(address spender, uint256 amount) returns (bool)"];
+const token = new ethers.Contract(TOKEN_ADDRESS, ERC20_ABI, signer);
+
+const L1_ERC20_VAULT = "0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab";
+const amount = ethers.parseUnits("100", 18);
+
+const tx = await token.approve(L1_ERC20_VAULT, amount);
+await tx.wait();
+```
+
+```bash [cast]
+cast send $TOKEN_ADDRESS \
+  "approve(address,uint256)" \
+  0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab \
+  $(cast --to-wei 100) \
+  --rpc-url https://eth.llamarpc.com \
+  --private-key $PRIVATE_KEY
+```
+
+:::
+
+### Call `sendToken` on the ERC20Vault
+
+Send a `BridgeTransferOp` struct to initiate the bridge.
+
+**`BridgeTransferOp` fields:**
+
+| Field | Type | Description |
+| --- | --- | --- |
+| `destChainId` | `uint64` | Destination chain ID (`167000` for mainnet, `167013` for Hoodi) |
+| `destOwner` | `address` | Token recipient on L2 (usually your own address) |
+| `to` | `address` | Same as `destOwner` for standard transfers |
+| `fee` | `uint64` | Processing fee in wei (set `0` to self-relay) |
+| `token` | `address` | L1 token contract address |
+| `gasLimit` | `uint32` | Gas limit for L2 execution (`140000` default) |
+| `amount` | `uint256` | Token amount in smallest unit |
+
+:::code-group
+
+```js [ethers.js]
+const VAULT_ABI = [
+  "function sendToken((uint64 destChainId, address destOwner, address to, uint64 fee, address token, uint32 gasLimit, uint256 amount) op) payable returns (tuple)"
+];
+
+const vault = new ethers.Contract(L1_ERC20_VAULT, VAULT_ABI, signer);
+
+const op = {
+  destChainId: 167000,
+  destOwner: signer.address,
+  to: signer.address,
+  fee: 0,
+  token: TOKEN_ADDRESS,
+  gasLimit: 140000,
+  amount: ethers.parseUnits("100", 18),
+};
+
+// fee = 0 means self-relay; otherwise send msg.value to cover processing fee
+const tx = await vault.sendToken(op, { value: 0 });
+const receipt = await tx.wait();
+console.log("Bridge tx:", receipt.hash);
+```
+
+```bash [cast]
+cast send 0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab \
+  "sendToken((uint64,address,address,uint64,address,uint32,uint256))" \
+  "(167000,$YOUR_ADDRESS,$YOUR_ADDRESS,0,$TOKEN_ADDRESS,140000,$(cast --to-wei 100))" \
+  --rpc-url https://eth.llamarpc.com \
+  --private-key $PRIVATE_KEY
+```
+
+:::
+
+### Wait for relay
+
+After the L1 transaction confirms, the bridge message is relayed to L2. This typically takes 3-5 minutes. Monitor progress on the [Taiko Bridge UI](https://bridge.taiko.xyz) or query the L2 SignalService.
+
+::::
+
+## Important notes
+
+- **First bridge creates a BridgedERC20.** The first time a token is bridged, Taiko deploys a `BridgedERC20` contract on L2. Subsequent bridges of the same token reuse this contract.
+- **No rebase tokens.** Rebasing tokens (e.g., stETH) are not supported. Use the wrapped version (e.g., wstETH).
+- **Fee-on-transfer tokens.** Tokens that charge a fee on transfer are handled, but the received amount on L2 will reflect the post-fee amount.
+- **Self-relay.** Set `fee` to `0` and relay the message yourself on L2 to avoid paying a processing fee. Use the Bridge UI or call `processMessage` on the L2 Bridge contract.
+- **Known L2 tokens.** Common tokens on Taiko L2:
+
+| Token | L2 Address |
+| --- | --- |
+| WETH | `0xA51894664A773981C6C112C43ce576f315d5b1B6` |
+| USDC | `0x07d83526730c7438048D55A4fc0b850e2aaB6f0b` |
+
+## Testnet
+
+Replace the vault address and chain ID for Hoodi:
+
+```bash
+cast send 0x0857cd029937E7a119e492434c71CB9a9Bb59aB0 \
+  "sendToken((uint64,address,address,uint64,address,uint32,uint256))" \
+  "(167013,$YOUR_ADDRESS,$YOUR_ADDRESS,0,$TOKEN_ADDRESS,140000,$(cast --to-wei 100))" \
+  --rpc-url https://hoodi.ethpandaops.io \
+  --private-key $PRIVATE_KEY
+```

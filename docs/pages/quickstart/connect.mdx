@@ -1,0 +1,105 @@
+# Connect to Taiko
+
+Add Taiko to your wallet or dApp.
+
+:::code-group
+
+```txt [Agent]
+Read https://docs.taiko.xyz/SKILL.md and add Taiko mainnet and testnet to my wagmi config
+```
+
+```txt [Human]
+Follow the step-by-step guide below.
+```
+
+:::
+
+## Manual Setup
+
+::::steps
+
+### Add Taiko to MetaMask
+
+Open MetaMask → Settings → Networks → Add Network and enter:
+
+| Field        | Value                            |
+| ------------ | -------------------------------- |
+| Network Name | Taiko Mainnet                    |
+| RPC URL      | `https://rpc.mainnet.taiko.xyz`  |
+| Chain ID     | `167000`                         |
+| Currency     | `ETH`                            |
+| Explorer     | `https://taikoscan.io`           |
+
+### Configure wagmi / viem
+
+Use `defineChain` to add Taiko mainnet and testnet to your app config.
+
+```ts
+import { defineChain } from 'viem'
+
+export const taikoMainnet = defineChain({
+  id: 167_000,
+  name: 'Taiko Mainnet',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://rpc.mainnet.taiko.xyz'] },
+  },
+  blockExplorers: {
+    default: { name: 'Taikoscan', url: 'https://taikoscan.io' },
+  },
+})
+
+export const taikoHoodi = defineChain({
+  id: 167_013,
+  name: 'Taiko Hoodi',
+  nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+  rpcUrls: {
+    default: { http: ['https://rpc.hoodi.taiko.xyz'] },
+  },
+  blockExplorers: {
+    default: { name: 'Taikoscan', url: 'https://hoodi.taikoscan.io' },
+  },
+})
+```
+
+:::info
+viem ships with built-in Taiko chain definitions. You can import `taiko` and `taikoHekla` directly from `viem/chains` instead of defining your own.
+:::
+
+### EIP-3085: wallet_addEthereumChain
+
+Use these JSON params to programmatically prompt users to add Taiko.
+
+:::code-group
+
+```json [Mainnet]
+{
+  "chainId": "0x28C58",
+  "chainName": "Taiko Mainnet",
+  "nativeCurrency": {
+    "name": "Ether",
+    "symbol": "ETH",
+    "decimals": 18
+  },
+  "rpcUrls": ["https://rpc.mainnet.taiko.xyz"],
+  "blockExplorerUrls": ["https://taikoscan.io"]
+}
+```
+
+```json [Hoodi Testnet]
+{
+  "chainId": "0x28C75",
+  "chainName": "Taiko Hoodi",
+  "nativeCurrency": {
+    "name": "Ether",
+    "symbol": "ETH",
+    "decimals": 18
+  },
+  "rpcUrls": ["https://rpc.hoodi.taiko.xyz"],
+  "blockExplorerUrls": ["https://hoodi.taikoscan.io"]
+}
+```
+
+:::
+
+::::

@@ -1,0 +1,162 @@
+# Deploy a Contract
+
+Deploy and verify a smart contract on Taiko using Foundry.
+
+:::code-group
+
+```txt [Agent]
+Read https://docs.taiko.xyz/SKILL.md and deploy and verify src/MyContract.sol on Taiko mainnet
+```
+
+```txt [Human]
+Follow the step-by-step guide below.
+```
+
+:::
+
+:::warning
+Taiko runs the **Shanghai** EVM. Solidity 0.8.24+ defaults to Cancun and emits opcodes (`TSTORE`, `TLOAD`, `MCOPY`, `BLOBHASH`, `BLOBBASEFEE`) that **do not exist** on Taiko. Always set `evm_version = "shanghai"` or your deployment will revert with no useful error.
+:::
+
+## Prerequisites
+
+- [Foundry](https://book.getfoundry.sh/getting-started/installation) installed
+- ETH on Taiko (bridge from Ethereum L1 or use a faucet for Hoodi)
+- [Taikoscan](https://taikoscan.io) API key for contract verification
+
+## Deploy with `forge create`
+
+::::steps
+
+### Configure Foundry
+
+Add a `[profile.taiko]` section to your `foundry.toml`:
+
+```toml
+[profile.taiko]
+evm_version = "shanghai"
+```
+
+This ensures every build targeting Taiko uses the correct EVM version.
+
+### Build
+
+Compile with the Taiko profile:
+
+```bash
+FOUNDRY_PROFILE=taiko forge build
+```
+
+### Deploy and verify
+
+:::code-group
+
+```bash [Mainnet]
+FOUNDRY_PROFILE=taiko forge create src/MyContract.sol:MyContract \
+  --rpc-url https://rpc.mainnet.taiko.xyz \
+  --private-key $PRIVATE_KEY \
+  --verify \
+  --verifier etherscan \
+  --verifier-url https://api.taikoscan.io/api \
+  --etherscan-api-key $TAIKOSCAN_API_KEY
+```
+
+```bash [Hoodi Testnet]
+FOUNDRY_PROFILE=taiko forge create src/MyContract.sol:MyContract \
+  --rpc-url https://rpc.hoodi.taiko.xyz \
+  --private-key $PRIVATE_KEY \
+  --verify \
+  --verifier etherscan \
+  --verifier-url https://api-hoodi.taikoscan.io/api \
+  --etherscan-api-key $TAIKOSCAN_API_KEY
+```
+
+:::
+
+### Confirm deployment
+
+```bash
+cast code $DEPLOYED_ADDRESS --rpc-url https://rpc.mainnet.taiko.xyz
+```
+
+A non-empty hex response confirms the contract exists on-chain.
+
+::::
+
+## Deploy with `forge script`
+
+For complex deployments (deterministic addresses, multi-contract, libraries), use a Forge script:
+
+```solidity
+// script/Deploy.s.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import "forge-std/Script.sol";
+import "../src/MyContract.sol";
+
+contract Deploy is Script {
+    function run() external {
+        vm.startBroadcast();
+        new MyContract();
+        vm.stopBroadcast();
+    }
+}
+```
+
+:::code-group
+
+```bash [Mainnet]
+FOUNDRY_PROFILE=taiko forge script script/Deploy.s.sol \
+  --rpc-url https://rpc.mainnet.taiko.xyz \
+  --private-key $PRIVATE_KEY \
+  --broadcast \
+  --verify \
+  --verifier etherscan \
+  --verifier-url https://api.taikoscan.io/api \
+  --etherscan-api-key $TAIKOSCAN_API_KEY
+```
+
+```bash [Hoodi Testnet]
+FOUNDRY_PROFILE=taiko forge script script/Deploy.s.sol \
+  --rpc-url https://rpc.hoodi.taiko.xyz \
+  --private-key $PRIVATE_KEY \
+  --broadcast \
+  --verify \
+  --verifier etherscan \
+  --verifier-url https://api-hoodi.taikoscan.io/api \
+  --etherscan-api-key $TAIKOSCAN_API_KEY
+```
+
+:::
+
+## Constructor arguments
+
+Pass constructor arguments after `--`:
+
+```bash
+FOUNDRY_PROFILE=taiko forge create src/MyToken.sol:MyToken \
+  --rpc-url https://rpc.mainnet.taiko.xyz \
+  --private-key $PRIVATE_KEY \
+  --constructor-args "MyToken" "MTK" 18 \
+  --verify \
+  --verifier etherscan \
+  --verifier-url https://api.taikoscan.io/api \
+  --etherscan-api-key $TAIKOSCAN_API_KEY
+```
+
+For complex types, encode arguments with `cast abi-encode`:
+
+```bash
+cast abi-encode "constructor(address,uint256)" 0xYourAddress 1000000000000000000
+```
+
+## Troubleshooting
+
+| Problem | Cause | Fix |
+| --- | --- | --- |
+| Deployment reverts with no error | Wrong EVM version | Set `evm_version = "shanghai"` in `foundry.toml` and rebuild |
+| `EvmError: NotActivated` | Cancun opcode on Shanghai | Same as above — rebuild with `FOUNDRY_PROFILE=taiko` |
+| `insufficient funds` | Not enough ETH on Taiko | Bridge ETH from L1 or use the Hoodi faucet |
+| Verification fails | EVM mismatch or wrong API URL | Ensure `--verifier-url` matches the network and the contract was compiled with Shanghai |
+| Verification pending | Taikoscan queue delay | Wait a few minutes and check the explorer manually |

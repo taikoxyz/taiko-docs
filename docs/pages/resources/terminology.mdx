@@ -1,0 +1,77 @@
+# Terminology
+
+Glossary of Taiko-specific terms.
+
+---
+
+### Based rollup
+
+A rollup where L1 validators sequence blocks rather than a centralized sequencer. Taiko is a based rollup: anyone can propose L2 blocks, and the L1 Ethereum validator for the current slot is the effective sequencer. This inherits Ethereum's liveness and censorship resistance. See [Based Rollups](/protocol/based-rollups).
+
+### Bond
+
+TAIKO tokens staked by provers as a guarantee of proof validity. If a proof is successfully contested, the bond is forfeited to the challenger. Bonds create economic accountability in the proving system.
+
+### Bridge
+
+The cross-chain messaging system connecting Ethereum L1 and Taiko L2. The bridge enables transfers of ETH, ERC-20 tokens, ERC-721 tokens, and arbitrary messages between chains. See [Bridging](/protocol/bridging) and [Bridge Tokens](/guides/bridge-tokens).
+
+### ComposeVerifier
+
+A smart contract that combines multiple proof verifiers into a single verification step. It allows the protocol to require that a block passes verification by more than one proof type (for example, both SGX and ZK) before being accepted.
+
+### Contestation
+
+The process of challenging a proof's validity by posting a competing proof backed by a bond. If the contestation succeeds, the original prover's bond is forfeited. This mechanism ensures that invalid proofs can be caught and corrected. See [Proving System](/protocol/proving-system).
+
+### ERC20Vault
+
+The contract that escrows ERC-20 tokens during cross-chain bridging. When tokens are bridged from L1 to L2, the ERC20Vault locks them on the source chain and a corresponding `BridgedERC20` is minted on the destination chain. See [Bridge Tokens](/guides/bridge-tokens).
+
+### Forced inclusion
+
+A mechanism ensuring that transactions cannot be censored by proposers. If a proposer refuses to include a transaction, the forced inclusion mechanism allows users to submit transactions directly to L1 for guaranteed inclusion in an L2 block.
+
+### Liveness bond
+
+TAIKO tokens staked by a prover when they commit to proving a block. If the prover fails to submit a valid proof within the proving window, the bond is forfeited and another prover can step in. This ensures provers remain active and accountable.
+
+### Preconfirmation
+
+An early guarantee of transaction inclusion from an L1 validator before the block is finalized. Preconfirmations reduce the time users wait for transaction confirmation by leveraging the L1 validator's commitment to include specific transactions. See [Preconfirmations](/protocol/preconfirmations).
+
+### Proof tier
+
+A category of proof type with associated bond requirements and trust assumptions. Taiko supports multiple proof tiers — for example, SGX proofs (faster, hardware-based trust) and ZK proofs (slower, cryptographic trust). Higher tiers can contest lower tiers. See [Proving System](/protocol/proving-system).
+
+### Proposer
+
+An entity that submits L2 block data to the `TaikoInbox` contract on L1. In Taiko's based rollup design, anyone can be a proposer — there is no centralized sequencer or permissioned set.
+
+### Prover
+
+An entity that generates validity proofs for proposed L2 blocks. Provers stake a liveness bond and must submit a proof within the proving window. Multiple proof types (SGX, ZK) are supported. See [Proving System](/protocol/proving-system).
+
+### SGX proof
+
+A proof generated inside an Intel SGX (Software Guard Extensions) trusted execution environment. SGX proofs are fast to generate but rely on hardware-based trust assumptions — the proof is only as trustworthy as the SGX enclave. They serve as a first line of defense in Taiko's multi-proof system.
+
+### SignalService
+
+The contract that enables cross-chain message verification via Merkle proofs. When a message is sent from one chain, the SignalService stores a signal (hash) that can be verified on the other chain by providing a Merkle proof against the source chain's state root. See [Bridging](/protocol/bridging).
+
+### TaikoAnchor
+
+An L2 predeployed contract that anchors L1 state into L2 blocks. Every L2 block includes a call to TaikoAnchor that records the latest L1 block hash and signal root, enabling L2 contracts to verify L1 state. Located at a fixed L2 address. See [Contract Addresses](/network/contract-addresses).
+
+### TaikoInbox
+
+The L1 contract where proposers submit L2 block data. It accepts batches of proposed blocks, validates them, and records them on-chain for provers to generate proofs against. This is the entry point for all L2 block proposals. See [Contract Addresses](/network/contract-addresses).
+
+### Type-1 ZK-EVM
+
+A zero-knowledge EVM that is fully equivalent to Ethereum at the protocol level. Type-1 means no modifications to the Ethereum architecture — same hash functions, state trees, gas costs, and opcodes. This allows existing Ethereum tooling, contracts, and clients to work without changes.
+
+### ZK proof
+
+A zero-knowledge proof of L2 state transition validity. Taiko supports ZK proofs generated by RISC0 and SP1 proof systems. ZK proofs provide the strongest trust guarantees — they are cryptographically verifiable and do not rely on hardware trust assumptions — but are more computationally expensive to generate than SGX proofs.

@@ -1,0 +1,146 @@
+# Bridging
+
+Cross-chain messaging between Ethereum and Taiko.
+
+---
+
+Taiko's bridge enables **trust-minimized asset transfers and message passing** between Ethereum (L1) and Taiko (L2). The bridge uses Merkle proofs and synchronized world state roots to verify cross-chain messages, requiring no trusted third party. Any contract or user can send and verify messages between chains.
+
+## Architecture Overview
+
+The bridge system consists of three layers:
+
+| Layer | Contracts | Purpose |
+|-------|-----------|---------|
+| **State synchronization** | TaikoInbox (L1), TaikoAnchor (L2) | Keep L1 and L2 world state roots in sync. |
+| **Signal service** | SignalService (deployed on both L1 and L2) | Low-level cross-chain message passing via Merkle proofs. |
+| **Bridge and vaults** | Bridge, ERC20Vault, ERC721Vault, ERC1155Vault | High-level asset transfer logic and token management. |
+
+## Signal Service
+
+The **Signal Service** is the foundation of cross-chain communication. It is deployed on both L1 and L2 and provides two core operations:
+
+**Sending a signal.** Any contract or user calls `sendSignal(message)` to store a message in the Signal Service's contract storage. The message is persisted as a storage slot value, which becomes part of the chain's state trie.
+
+**Verifying a signal.** On the destination chain, anyone can call `verifySignalReceived(message, proof)` with a Merkle proof demonstrating that the signal was stored on the source chain. The Signal Service reconstructs the Merkle root using the provided sibling hashes and verifies it against the stored world state root of the source chain.
+
+### How State Roots Stay in Sync
+
+- **L1 state on L2.** Every L2 block includes an `anchor` transaction that stores the corresponding L1 world state root in the TaikoAnchor contract. This happens automatically as part of block construction.
+- **L2 state on L1.** When L2 batches are proved and verified, the L2 world state root is stored in the TaikoInbox contract via `syncChainData`.
+
+This bidirectional state synchronization enables Merkle proofs to be verified in both directions.
+
+## Bridge Contract
+
+The **Bridge** contract provides the user-facing interface for cross-chain transfers. It handles message lifecycle management including sending, processing, retrying, and recalling messages.
+
+### Message Lifecycle
+
+A bridge message transitions through the following states:
+
+| Status | Meaning |
+|--------|---------|
+| **NEW** | Message has been sent on the source chain and is pending processing. |
+| **RETRIABLE** | Processing failed on the destination chain, but the message can be retried. |
+| **DONE** | Message was processed successfully on the destination chain. |
+| **FAILED** | Message failed permanently and cannot be retried. |
+| **RECALLED** | Message was recalled by the sender on the source chain, and assets were refunded. |
+
+### Sending a Message (Source Chain)
+
+1. The user calls `sendMessage` on the Bridge contract (or `sendToken` on a token vault).
+2. The Bridge contract locks ETH or tokens.
+3. The Bridge contract calls `sendSignal` on the Signal Service to record the message.
+4. A `MessageSent` event is emitted.
+
+### Processing a Message (Destination Chain)
+
+1. A relayer (or the user) retrieves the Merkle proof for the message using `eth_getProof` on the source chain.
+2. The relayer calls `processMessage` on the destination chain's Bridge contract, providing the message and its proof.
+3. The Bridge contract verifies the proof via the Signal Service.
+4. If valid, the bridge releases assets to the recipient and marks the message as DONE.
+
+:::info
+If processing fails (for example, due to an out-of-gas condition in the destination contract call), the message enters the RETRIABLE state. It can be retried later via `retryMessage`, or explicitly failed via `failMessage`, after which the sender can recall it on the source chain.
+:::
+
+## Token Bridging
+
+### How Token Vaults Work
+
+Taiko uses a **vault system** for token bridging. There are three vault contracts, one for each token standard:
+
+| Vault | Token Standard | Description |
+|-------|---------------|-------------|
+| **ERC20Vault** | ERC-20 | Fungible tokens. Supports solver-based fast withdrawals. |
+| **ERC721Vault** | ERC-721 | Non-fungible tokens (NFTs). |
+| **ERC1155Vault** | ERC-1155 | Multi-token standard. |
+
+### Bridging Tokens to the Destination Chain
+
+1. The user calls `sendToken` on the appropriate vault on the source chain.
+2. The vault locks the tokens and creates a bridge message via the Bridge contract.
+3. On the destination chain, the message is processed and a **BridgedERC** contract mints the equivalent tokens.
+
+### Bridging Tokens Back to the Canonical Chain
+
+1. The user calls `sendToken` on the BridgedERC contract on the destination chain.
+2. The bridged tokens are **burned**.
+3. On the canonical chain, the original vault releases the locked tokens back to the user.
+
+### ETH Bridging
+
+ETH transfers work through the Bridge contract directly:
+
+- **Direct transfer:** Call `sendMessage` on the Bridge with ETH attached.
+- **With token transfer:** Call `sendToken` on a token vault with ETH included as part of the transaction value.
+
+## L1 to L2 vs. L2 to L1
+
+The bridging flow differs in timing depending on the direction:
+
+| Direction | Process | Timing |
+|-----------|---------|--------|
+| **L1 to L2** | Send on L1 --> relayer or user submits proof on L2 --> assets released on L2. | Relatively fast. The L1 state root is available on L2 as soon as the next L2 block anchors it. |
+| **L2 to L1** | Send on L2 --> wait for batch to be proved and verified on L1 --> submit proof on L1 --> assets released on L1. | Slower. Must wait for the L2 batch containing the message to be proved and verified (proving window + cooldown window). |
+
+:::warning
+**L2 to L1 withdrawals require waiting for proof verification.** Under the current configuration, this means the proving window (2 hours) plus the cooldown window (2 hours), for a minimum of approximately 4 hours. ERC20Vault supports solver-based fast withdrawals to mitigate this delay for ERC-20 tokens.
+:::
+
+## Quota Management
+
+The bridge implements **rate limits** on withdrawals via the **QuotaManager** contract. This prevents excessive outflows that could indicate an exploit.
+
+Example quotas:
+
+| Asset | Quota | Period |
+|-------|-------|--------|
+| **ETH** | 1,000 ETH | 24 hours |
+| **USDC** | 4,000,000 USDC | 24 hours |
+
+If a withdrawal would exceed the quota, the message processing returns an `OUT_OF_ETH_QUOTA` status reason. The message enters the RETRIABLE state and can be retried after the quota replenishes.
+
+## Message Claiming: Automatic vs. Manual
+
+Bridge messages can be claimed in two ways:
+
+**Automatic (via relayer).** A relayer monitors for bridge messages and submits the Merkle proof on the destination chain automatically. The relayer earns a processing fee (set by the user when sending the message) as compensation for the gas cost.
+
+**Manual (by the user).** The user retrieves the proof themselves and calls `processMessage` directly on the destination chain. No processing fee is required, but the user must pay the destination chain gas cost.
+
+:::info
+The Bridge UI at [bridge.taiko.xyz](https://bridge.taiko.xyz) supports both automatic and manual claiming.
+:::
+
+## Summary
+
+| Feature | Implementation |
+|---------|---------------|
+| **Security model** | Merkle proofs verified against synchronized world state roots. |
+| **Asset types** | ETH, ERC-20, ERC-721, ERC-1155. |
+| **Trust assumptions** | None beyond Ethereum and Taiko themselves -- no trusted relayer or oracle. |
+| **Permissionless** | Anyone can send messages, relay proofs, or run a relayer. |
+| **Rate-limited** | QuotaManager prevents excessive outflows. |
+| **Fast withdrawals** | Solver support for ERC-20 via ERC20Vault. |

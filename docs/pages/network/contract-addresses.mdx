@@ -1,0 +1,177 @@
+# Contract Addresses
+
+Contract addresses for Taiko on Ethereum L1 and Taiko L2.
+
+:::info
+The canonical source for deployment data is the [deployment logs on GitHub](https://github.com/taikoxyz/taiko-mono/tree/main/packages/protocol/deployments). This page is a reference summary. If any discrepancy exists, the GitHub logs are authoritative.
+:::
+
+## Mainnet L1 (Ethereum)
+
+### Shared Contracts
+
+| Contract           | Proxy Address                                |
+| ------------------ | -------------------------------------------- |
+| TaikoToken         | `0x10dea67478c5F8C5E2D90e5E9B26dBe60c54d800` |
+| Bridge             | `0xd60247c6848B7Ca29eDdF63AA924E53dB6Ddd8EC` |
+| SignalService      | `0x9e0a24964e5397B566c1ed39258e21aB5E35C77C` |
+| ERC20Vault         | `0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab` |
+| ERC721Vault        | `0x0b470dd3A0e1C41228856Fb319649E7c08f419Aa` |
+| ERC1155Vault       | `0xaf145913EA4a56BE22E120ED9C24589659881702` |
+| QuotaManager       | `0x91f67118DD47d502B1f0C354D0611997B022f29E` |
+| SharedAddressManager | `0xEf9EaA1dd30a9AA1df01c36411b5F082aA65fBaa` |
+
+### Rollup Contracts
+
+| Contract              | Proxy Address                                |
+| --------------------- | -------------------------------------------- |
+| TaikoInbox            | `0x06a9Ab27c7e2255df1815E6CC0168d7755Feb19a` |
+| TaikoWrapper          | `0x9F9D2fC7abe74C79f86F0D1212107692430eef72` |
+| ForcedInclusionStore  | `0x05d88855361808fA1d7fc28084Ef3fCa191c4e03` |
+| ComposeVerifier       | `0xB16931e78d0cE3c9298bbEEf3b5e2276D34b8da1` |
+| PreconfWhitelist      | `0xFD019460881e6EeC632258222393d5821029b2ac` |
+| PreconfRouter         | `0xD5AA0e20e8A6e9b04F080Cf8797410fafAa9688a` |
+| RollupAddressManager  | `0x579f40D0BE111b823962043702cabe6Aaa290780` |
+| RollupAddressResolver | `0x5A982Fb1818c22744f5d7D36D0C4c9f61937b33a` |
+| SharedResolver        | `0x8Efa01564425692d0a0838DC10E300BD310Cb43e` |
+| ProverWhitelist       | `0xEa798547d97e345395dA071a0D7ED8144CD612Ae` |
+
+### Verifiers (Pacaya)
+
+| Contract           | Proxy Address                                |
+| ------------------ | -------------------------------------------- |
+| SgxRethVerifier    | `0x9e322fC59b8f4A29e6b25c3a166ac1892AA30136` |
+| SgxGethVerifier    | `0x7e6409e9b6c5e2064064a6cC994f9a2e95680782` |
+| Risc0RethVerifier  | `0x73Ee496dA20e5C65340c040B0D8c3C891C1f74AE` |
+| SP1RethVerifier    | `0xbee1040D0Aab17AE19454384904525aE4A3602B9` |
+| SgxGethAutomata    | `0x0ffa4A625ED9DB32B70F99180FD00759fc3e9261` |
+| AutomataDcapAttestation | `0x8d7C954960a36a7596d7eA4945dDf891967ca8A3` |
+
+### Legacy Verifiers (Ontake)
+
+| Contract       | Proxy Address                                |
+| -------------- | -------------------------------------------- |
+| TierSgx        | `0xb0f3186FC1963f774f52ff455DC86aEdD0b31F81` |
+| TierRisc0      | `0x55902b2D3DF2A65370A89C86Ae9dd71Ecd508edc` |
+| TierSP1        | `0x5c44f2239925b0d86d2BFEe539f19CD0A08Af452` |
+
+### Shasta Contracts (L1)
+
+| Contract                   | Address                                      |
+| -------------------------- | -------------------------------------------- |
+| ShastaInbox (proxy)        | `0x6f21C543a4aF5189eBdb0723827577e1EF57ef1f` |
+| SgxVerifierReth (impl)     | `0xa1018Ba2e22139076f91dA2A856B2CAB22d968F6` |
+| SgxVerifierGeth (impl)     | `0x08568Df252ecf37D6C3eFD24f6ca3688118697F1` |
+| Risc0Verifier (impl)       | `0x059dAF31F571da48Ab4e74Ae12F64f907681Cd8b` |
+| SP1Verifier (impl)         | `0x96337327648dcFA22b014009cf10A2D5E2F305f6` |
+| MainnetVerifier (impl)     | `0x9cAa4948381590900FCdd8a4F06EB24138eD665d` |
+| SignalServiceForkRouter    | `0x6a4B15E4b0296B2ECE03Ee9Ed74E4A3E3ECA68D6` |
+
+---
+
+## Mainnet L2 (Taiko Alethia)
+
+### Shared Contracts
+
+Predeployed at deterministic `0x167000...` addresses.
+
+| Contract           | Proxy Address                                |
+| ------------------ | -------------------------------------------- |
+| Bridge             | `0x1670000000000000000000000000000000000001` |
+| ERC20Vault         | `0x1670000000000000000000000000000000000002` |
+| ERC721Vault        | `0x1670000000000000000000000000000000000003` |
+| ERC1155Vault       | `0x1670000000000000000000000000000000000004` |
+| SignalService      | `0x1670000000000000000000000000000000000005` |
+| SharedAddressManager | `0x1670000000000000000000000000000000000006` |
+
+### Rollup Contracts
+
+| Contract              | Proxy Address                                |
+| --------------------- | -------------------------------------------- |
+| TaikoAnchor           | `0x1670000000000000000000000000000000010001` |
+| RollupAddressManager  | `0x1670000000000000000000000000000000010002` |
+
+### Pacaya Contracts (L2)
+
+| Contract              | Proxy Address                                |
+| --------------------- | -------------------------------------------- |
+| SharedResolver        | `0xc32277f541bBADAA260337E71Cea53871D310DC8` |
+| RollupResolver        | `0x73251237d8F1B99e9966bB054722F3446195Ea56` |
+
+### Key Tokens & Utilities
+
+| Token / Contract | Address                                      |
+| ---------------- | -------------------------------------------- |
+| TaikoToken (bridged) | `0xA9d23408b9bA935c230493c40C73824Df71A0975` |
+| USDC (native)    | `0x07d83526730c7438048D55A4fc0b850e2aaB6f0b` |
+| WETH             | `0xA51894664A773981C6C112C43ce576f315d5b1B6` |
+
+### Shasta Contracts (L2)
+
+| Contract                     | Address                                      |
+| ---------------------------- | -------------------------------------------- |
+| AnchorForkRouter (impl)      | `0x38e4A497aD70aa0581BAc29747b0Ea7a53258585` |
+| AnchorImpl (impl)            | `0x7e83Af941FDcf90EB44ED7dc8754a201B156E0BA` |
+| SignalServiceForkRouter      | `0x2987F6Bef39b03F8522EC38B36aF0f7422938EAb` |
+| SignalServiceImpl            | `0x18B27428cce679DFf84D09D6b07DF1E9EBb6fE28` |
+
+---
+
+## Hoodi Testnet L1 (Ethereum Hoodi)
+
+### Shared Contracts
+
+| Contract           | Proxy Address                                |
+| ------------------ | -------------------------------------------- |
+| TaikoToken         | `0xf3b83e226202ECf7E7bb2419a4C6e3eC99e963DA` |
+| Bridge             | `0x6a4cf607DaC2C4784B7D934Bcb3AD7F2ED18Ed80` |
+| SignalService      | `0x4c70b7F5E153D497faFa0476575903F9299ed811` |
+| ERC20Vault         | `0x0857cd029937E7a119e492434c71CB9a9Bb59aB0` |
+| ERC721Vault        | `0x4876e7993dD40C22526c8B01F2D52AD8FdbdF768` |
+| ERC1155Vault       | `0x81Ff6CcE1e5cFd6ebE83922F5A9608d1752C92c6` |
+| SharedResolver     | `0x7bbacc9FFd29442DF3173b7685560fCE96E01b62` |
+
+### Rollup Contracts
+
+| Contract              | Proxy Address                                |
+| --------------------- | -------------------------------------------- |
+| PacayaInbox           | `0xf6eA848c7d7aC83de84db45Ae28EAbf377fe0eF9` |
+| ShastaInbox           | `0xeF4bB7A442Bd68150A3aa61A6a097B86b91700BF` |
+| ForcedInclusionStore  | `0xA7F175Aff7C62854d0A0498a0da17b66A9D452D0` |
+| TaikoWrapper          | `0xB843132A26C13D751470a6bAf5F926EbF5d0E4b8` |
+| PreconfWhitelist      | `0x8B969Fcf37122bC5eCB4E0e5Ad65CEEC3f1393ba` |
+| PreconfRouter         | `0xCD15bdEc91BbD45E56D81b4b76d4f97f5a84e555` |
+| ProverWhitelist       | `0xa9a84b6667A2c60BFdE8c239918d0d9a11c77E89` |
+| RollupAddressResolver | `0x0d006d8d394dD69fAfEfF62D21Fc03E7F50eDaF4` |
+
+### Verifiers (Hoodi)
+
+| Contract            | Proxy Address                                |
+| ------------------- | -------------------------------------------- |
+| ComposeVerifier     | `0xd9F11261AE4B873bE0f09D0Fc41d2E3F70CD8C59` |
+| SgxRethVerifier     | `0xd46c13B67396cD1e74Bb40e298fbABeA7DC01f11` |
+| SgxGethVerifier     | `0xCdBB6C1751413e78a40735b6D9Aaa7D55e8c038e` |
+| Risc0RethVerifier   | `0xbf285Dd2FD56BF4893D207Fba4c738D1029edFfd` |
+| SP1RethVerifier     | `0x3B3bb4A1Cb8B1A0D65F96a5A93415375C039Eda3` |
+
+---
+
+## Hoodi Testnet L2 (Taiko Hoodi)
+
+### Shared Contracts
+
+| Contract           | Proxy Address                                |
+| ------------------ | -------------------------------------------- |
+| Bridge             | `0x1670130000000000000000000000000000000001` |
+| ERC20Vault         | `0x1670130000000000000000000000000000000002` |
+| ERC721Vault        | `0x1670130000000000000000000000000000000003` |
+| ERC1155Vault       | `0x1670130000000000000000000000000000000004` |
+| SignalService      | `0x1670130000000000000000000000000000000005` |
+| SharedResolver     | `0x1670130000000000000000000000000000000006` |
+
+### Rollup Contracts
+
+| Contract              | Proxy Address                                |
+| --------------------- | -------------------------------------------- |
+| TaikoAnchor           | `0x1670130000000000000000000000000000010001` |
+| RollupResolver        | `0x1670130000000000000000000000000000010002` |

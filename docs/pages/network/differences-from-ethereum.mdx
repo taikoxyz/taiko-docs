@@ -1,0 +1,90 @@
+# Differences from Ethereum
+
+Key differences between Taiko and Ethereum that affect smart contract development.
+
+## EVM Version: Shanghai
+
+Taiko runs the **Shanghai** EVM. Cancun opcodes are **not available**:
+
+| Opcode        | Status          |
+| ------------- | --------------- |
+| `TSTORE`      | Not available   |
+| `TLOAD`       | Not available   |
+| `MCOPY`       | Not available   |
+| `BLOBHASH`    | Not available   |
+| `BLOBBASEFEE` | Not available   |
+
+Solidity 0.8.24+ defaults to Cancun. Deploying with default settings causes runtime reverts on Taiko. Set the EVM version explicitly.
+
+### Foundry Configuration
+
+Add a `[profile.taiko]` section to `foundry.toml`:
+
+```toml
+[profile.taiko]
+evm_version = "shanghai"
+```
+
+Then compile and deploy with:
+
+```bash
+FOUNDRY_PROFILE=taiko forge build
+FOUNDRY_PROFILE=taiko forge script ...
+```
+
+### Hardhat Configuration
+
+Set `evmVersion` in your Hardhat config:
+
+```js
+module.exports = {
+  solidity: {
+    version: "0.8.27",
+    settings: {
+      evmVersion: "shanghai",
+    },
+  },
+}
+```
+
+### Impact on OpenZeppelin v5
+
+OpenZeppelin Contracts v5 uses transient storage (`TSTORE`/`TLOAD`) in the `ReentrancyGuard` and other contracts. Use OpenZeppelin v4 or pin to v5 releases that support Shanghai-compatible fallbacks.
+
+## No Centralized Sequencer
+
+Taiko is a **based rollup** -- L1 Ethereum validators sequence blocks. There is no centralized sequencer.
+
+- Blocks are proposed by whitelisted proposers through preconfirmation infrastructure.
+- Anyone can force-include transactions via the `ForcedInclusionStore` contract on L1.
+- Transaction ordering follows L1 inclusion order.
+
+## Block Time
+
+Block time is **variable**, typically 2--6 seconds. It depends on based preconfirmation timing and L1 block inclusion. Do not hardcode block time assumptions.
+
+## Proving System
+
+Taiko uses a **multi-proof system** with contestable validity proofs:
+
+| Proof Tier    | Description                          |
+| ------------- | ------------------------------------ |
+| SGX           | TEE-based attestation (fast)         |
+| ZK (RISC0)    | RISC Zero zkVM proof                 |
+| ZK (SP1)      | Succinct SP1 proof                   |
+
+- Proofs are contestable: anyone can challenge a proof by posting a bond.
+- Higher-tier proofs override lower-tier proofs during contests.
+- Bonds are slashed if a proof is successfully contested.
+
+## Gas and Fee Model
+
+- Taiko uses EIP-1559 for L2 gas pricing.
+- L1 data costs apply for calldata posted to Ethereum.
+- No L1 blob fees (since `BLOBBASEFEE` is unavailable on Taiko L2 itself).
+
+## Full Diff
+
+For a complete list of modifications to go-ethereum, see the taiko-geth diff:
+
+- [https://geth.taiko.xyz/](https://geth.taiko.xyz/)

@@ -1,0 +1,259 @@
+/* ============================================================
+   Taiko Docs — Custom Theme
+
+   Brand: Taiko pink #E81899, Deep Gray #0B0B0B
+   Fonts: Public Sans (body), system mono
+   Approach: Clean, professional dark docs. Pink as accent only.
+   ============================================================ */
+
+/* --- Color foundation --- */
+:root {
+  --taiko-pink: #e81899;
+  --taiko-pink-light: #fc5cb5;
+  --taiko-pink-glow: rgba(232, 24, 153, 0.12);
+  --taiko-pink-subtle: rgba(232, 24, 153, 0.06);
+
+  --surface-0: #0b0b0b;
+  --surface-1: #111113;
+  --surface-2: #191919;
+  --surface-3: #222222;
+  --surface-4: #2a2a2a;
+
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-default: rgba(255, 255, 255, 0.12);
+
+  --text-primary: #ededef;
+  --text-secondary: #8e8e93;
+  --text-tertiary: #636366;
+}
+
+/* --- Vocs overrides --- */
+:root {
+  --vocs-color_background: var(--surface-1);
+  --vocs-color_backgroundDark: var(--surface-0);
+  --vocs-color_codeBlockBackground: var(--surface-0);
+  --vocs-color_codeTitleBackground: var(--surface-2);
+  --vocs-color_noteBackground: var(--surface-2);
+  --vocs-color_infoBackground: rgba(59, 130, 246, 0.07);
+  --vocs-color_warningBackground: rgba(245, 158, 11, 0.07);
+  --vocs-color_dangerBackground: rgba(239, 68, 68, 0.07);
+  --vocs-color_tipBackground: var(--taiko-pink-subtle);
+  --vocs-color_successBackground: rgba(34, 197, 94, 0.07);
+  --vocs-color_border: var(--border-subtle);
+  --vocs-color_borderAccent: var(--taiko-pink);
+  --vocs-color_heading: var(--text-primary);
+  --vocs-color_text: #c8c8cc;
+  --vocs-color_text2: var(--text-secondary);
+  --vocs-color_text3: var(--text-tertiary);
+  --vocs-color_title: var(--text-primary);
+  --vocs-content_horizontalPadding: 48px;
+  --vocs-content_width: 768px;
+  --vocs-sidebar_width: 260px;
+}
+
+/* --- Top nav --- */
+.vocs_NavBar {
+  border-bottom: 1px solid var(--border-subtle) !important;
+  background: rgba(11, 11, 11, 0.8) !important;
+  backdrop-filter: blur(16px);
+}
+
+/* --- Sidebar --- */
+.vocs_Sidebar {
+  border-right: 1px solid var(--border-subtle) !important;
+}
+
+.vocs_SidebarItem {
+  font-size: 14px !important;
+  border-radius: 6px !important;
+}
+
+.vocs_SidebarItem[data-active="true"] {
+  background: var(--taiko-pink-subtle) !important;
+  color: var(--taiko-pink-light) !important;
+}
+
+.vocs_SidebarItem:hover:not([data-active="true"]) {
+  background: var(--surface-3) !important;
+}
+
+/* --- Content typography --- */
+.vocs_Content h1 {
+  font-size: 2rem !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.025em !important;
+  line-height: 1.2 !important;
+}
+
+.vocs_Content h2 {
+  font-size: 1.35rem !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.02em !important;
+  margin-top: 2.5rem !important;
+  padding-bottom: 0.5rem !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+.vocs_Content h3 {
+  font-size: 1.1rem !important;
+  font-weight: 600 !important;
+}
+
+/* Description text under h1 */
+.vocs_Content h1 + .vocs_Paragraph {
+  color: var(--text-secondary) !important;
+  font-size: 1.05rem !important;
+  line-height: 1.6 !important;
+}
+
+/* --- Code blocks --- */
+.vocs_CodeBlock {
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 8px !important;
+}
+
+.vocs_CodeTitle {
+  border-bottom: 1px solid var(--border-subtle) !important;
+  font-size: 13px !important;
+  color: var(--text-secondary) !important;
+}
+
+/* Tab styling */
+.vocs_Tabs_tab {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+}
+
+.vocs_Tabs_tab[data-state="active"] {
+  color: var(--taiko-pink-light) !important;
+  border-bottom-color: var(--taiko-pink) !important;
+}
+
+/* --- Callouts --- */
+.vocs_Callout {
+  border-radius: 8px !important;
+  border-left: 3px solid !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+}
+
+.vocs_Callout[data-type="warning"] { border-left-color: #f59e0b !important; }
+.vocs_Callout[data-type="info"] { border-left-color: #3b82f6 !important; }
+.vocs_Callout[data-type="tip"] { border-left-color: var(--taiko-pink) !important; }
+
+/* --- Tables --- */
+.vocs_Table { font-size: 14px !important; }
+
+.vocs_Table th {
+  background: var(--surface-2) !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  color: var(--text-secondary) !important;
+}
+
+.vocs_Table td { border-color: var(--border-subtle) !important; }
+.vocs_Table tr:hover td { background: var(--surface-2) !important; }
+
+.vocs_Table code {
+  font-size: 12.5px !important;
+  background: var(--surface-3) !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  color: #b0b0b8 !important;
+}
+
+/* --- Steps --- */
+.vocs_Steps ol > li::before {
+  background: var(--taiko-pink) !important;
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.vocs_Steps ol > li {
+  border-left-color: var(--border-subtle) !important;
+}
+
+/* --- Links --- */
+.vocs_Content a:not([class]) {
+  color: var(--taiko-pink-light) !important;
+  text-decoration: none !important;
+  transition: opacity 0.15s ease !important;
+}
+
+.vocs_Content a:not([class]):hover {
+  opacity: 0.8 !important;
+}
+
+/* --- Scrollbar --- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface-4); border-radius: 3px; }
+
+/* --- Landing page cards --- */
+.landing-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-top: 20px;
+  margin-bottom: 8px;
+}
+
+@media (max-width: 640px) {
+  .landing-cards { grid-template-columns: 1fr; }
+}
+
+.landing-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  text-decoration: none !important;
+  color: var(--text-primary) !important;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.landing-card:hover {
+  border-color: var(--border-default);
+  background: var(--surface-3);
+}
+
+.landing-card-icon {
+  font-size: 20px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.landing-card-title {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.landing-card-desc {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* --- Pagination --- */
+.vocs_DocsLayout_content nav a {
+  border-color: var(--border-subtle) !important;
+  border-radius: 8px !important;
+}
+
+.vocs_DocsLayout_content nav a:hover {
+  border-color: var(--border-default) !important;
+}
+
+/* --- Search --- */
+.vocs_SearchInput {
+  background: var(--surface-2) !important;
+  border-color: var(--border-default) !important;
+  border-radius: 8px !important;
+}

@@ -1,0 +1,409 @@
+# Run a Node
+
+Run a Taiko node using Docker or from source.
+
+## Prerequisites
+
+### Hardware
+
+| Resource | Minimum |
+| --- | --- |
+| CPU | 4 cores |
+| RAM | 16 GB |
+| Storage | 2 TB SSD |
+
+Storage requirements grow over time. Plan accordingly.
+
+### Software
+
+| Dependency | Version | Check |
+| --- | --- | --- |
+| [Git](https://git-scm.com/) | 2+ | `git --version` |
+| [Docker](https://docs.docker.com/engine/install/) | 24+ (Docker method) | `docker --version` |
+| [Go](https://go.dev/) | 1.21+ (source method) | `go version` |
+| [Make](https://www.gnu.org/software/make/) | 4+ (source method) | `make --version` |
+
+### L1 Endpoint
+
+You need access to an Ethereum L1 node (execution + beacon).
+
+- **Mainnet nodes** require an Ethereum mainnet L1 endpoint.
+- **Hoodi testnet nodes** require an Ethereum Hoodi testnet L1 endpoint.
+
+:::warning
+Third-party RPC providers will eventually rate-limit your node and stop syncing. Run your own L1 node for a reliable setup.
+:::
+
+:::info
+To prove blocks older than 128 blocks, your L1 node must be an archive node.
+:::
+
+## Install and Run
+
+:::code-group
+
+```txt [Docker]
+See the Docker method steps below.
+```
+
+```txt [From Source]
+See the From Source method steps below.
+```
+
+:::
+
+## Docker Method
+
+::::steps
+
+### Clone simple-taiko-node
+
+```bash
+git clone https://github.com/taikoxyz/simple-taiko-node.git
+cd simple-taiko-node
+```
+
+On Windows, also run `git config core.autocrlf false` after cloning.
+
+### Copy the sample environment file
+
+:::code-group
+
+```bash [Mainnet]
+cp .env.sample .env
+```
+
+```bash [Hoodi Testnet]
+cp .env.sample.hoodi .env
+```
+
+:::
+
+### Configure L1 endpoints
+
+Open `.env` in a text editor and set:
+
+```bash
+L1_ENDPOINT_WS=ws://<your-l1-node>:8546
+L1_BEACON_HTTP=http://<your-l1-node>:5052
+```
+
+:::warning
+If your L1 node runs on the same machine, do not use `127.0.0.1`. Docker cannot reach the host loopback. Use `host.docker.internal` or your machine's private IP (find it with `ip addr show` or `ifconfig`).
+:::
+
+### Set compose profiles
+
+In `.env`, set `COMPOSE_PROFILES` to the services you want to run:
+
+```bash
+COMPOSE_PROFILES=l2_execution_engine
+```
+
+Add `prover` to the list if you plan to prove (requires `ENABLE_PROVER=true` separately).
+
+### Configure preconfirmations (recommended)
+
+To receive preconfirmed blocks and keep your node at the tip of the chain, configure these settings in `.env`:
+
+1. Set `ENABLE_PRECONFS_P2P=true`.
+
+2. Set `PUBLIC_IP` to your machine's external IP. If left blank, NAT traversal (PMP/UPnP) is used automatically, but manual configuration is preferred.
+
+3. Open these ports on your firewall/router so they are reachable from the internet:
+   - TCP `4001` (or your custom `P2P_TCP_PORT`)
+   - UDP `30303` (or your custom `P2P_UDP_PORT`)
+
+4. Set a private key for your P2P peer identity. Use either:
+   - `PRIV_RAW` — hex-encoded private key in plaintext
+   - `PRIV_FILE` — filename of a key file in the `script/` directory
+
+:::info
+The P2P private key does not need to hold ETH or any assets. It exists only to give your node a stable peer identity. Use a unique key for each node.
+:::
+
+:::warning
+`PUBLIC_IP` must be publicly reachable from the internet at the advertised TCP and UDP ports. If it is not, your node will not join the P2P network.
+:::
+
+### Start the node
+
+:::code-group
+
+```bash [Mainnet]
+docker compose up -d
+```
+
+```bash [Hoodi Testnet]
+docker compose -f docker-compose-hoodi.yml up -d
+```
+
+:::
+
+You may need `sudo` if your user is not in the `docker` group.
+
+### Verify the node is running
+
+Check that the execution engine is connected:
+
+```bash
+curl http://localhost:8547 \
+  -X POST \
+  -H "Content-Type: application/json" \
+  --data '{"method":"eth_chainId","params":[],"id":1,"jsonrpc":"2.0"}'
+```
+
+Expected response for mainnet: `"result":"0x28c61"` (chain ID 167009).
+
+Check sync progress:
+
+```bash
+curl http://localhost:8547 \
+  -X POST \
+  -H "Content-Type: application/json" \
+  --data '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}'
+```
+
+If the block number is `0` or not growing, inspect the logs:
+
+```bash
+docker compose logs -f
+```
+
+### Verify P2P connectivity
+
+Search for `peer tick` in the logs:
+
+```bash
+docker compose logs -f | grep "peer tick"
+```
+
+Look for output like:
+
+```
+INFO [07-30|18:37:38.168] Peer tick  peersLen=6 peers="[...]" ...
+```
+
+If `peersLen` is 6 or higher, P2P is working correctly.
+
+::::
+
+## From Source Method
+
+A Taiko node has two components:
+
+- **taiko-geth** (execution engine) — executes block payloads and holds chain state. Exposes the standard Ethereum JSON-RPC API.
+- **taiko-client** (consensus client) — decodes L2 blocks from L1 calldata/blobspace and passes payloads to taiko-geth.
+
+::::steps
+
+### Build taiko-geth
+
+Clone the repository and check out the release branch from the [releases page](https://github.com/taikoxyz/taiko-geth/releases):
+
+```bash
+git clone https://github.com/taikoxyz/taiko-geth.git
+cd taiko-geth
+git checkout <release-branch>
+make geth
+```
+
+### Build taiko-client
+
+Clone the monorepo and check out the release branch from the [releases page](https://github.com/taikoxyz/taiko-mono/releases) (search for `taiko-client`):
+
+```bash
+git clone https://github.com/taikoxyz/taiko-mono.git
+cd taiko-mono/packages/taiko-client
+git checkout <release-branch>
+make build
+```
+
+### Create a JWT secret
+
+taiko-geth and taiko-client communicate over the Engine API, secured by a shared secret:
+
+```bash
+openssl rand -hex 32 > jwt.txt
+```
+
+Copy `jwt.txt` into both the `taiko-geth` and `taiko-client` directories.
+
+### Start taiko-geth
+
+:::code-group
+
+```bash [Mainnet]
+./build/bin/geth \
+  --taiko \
+  --networkid 167009 \
+  --gcmode archive \
+  --datadir ./data/taiko-geth \
+  --metrics \
+  --metrics.expensive \
+  --metrics.addr "0.0.0.0" \
+  --authrpc.addr "0.0.0.0" \
+  --authrpc.port 28551 \
+  --authrpc.vhosts "*" \
+  --authrpc.jwtsecret ./jwt.txt \
+  --http \
+  --http.api admin,debug,eth,net,web3,txpool,miner,taiko \
+  --http.addr "0.0.0.0" \
+  --http.port 28545 \
+  --http.vhosts "*" \
+  --ws \
+  --ws.api admin,debug,eth,net,web3,txpool,miner,taiko \
+  --ws.addr "0.0.0.0" \
+  --ws.port 28546 \
+  --ws.origins "*" \
+  --gpo.ignoreprice "100000000" \
+  --port 30304 \
+  --syncmode full \
+  --state.scheme=path
+```
+
+```bash [Hoodi Testnet]
+./build/bin/geth \
+  --taiko \
+  --networkid 167013 \
+  --gcmode archive \
+  --datadir ./data/taiko-geth \
+  --metrics \
+  --metrics.expensive \
+  --metrics.addr "0.0.0.0" \
+  --bootnodes enode://eb5079aae185d5d8afa01bfd2d349da5b476609aced2b57c90142556cf0ee4a152bcdd724627a7de97adfc2a68af5742a8f58781366e6a857d4bde98de6fe986@34.44.53.195:30303,enode://b054002f068f30568aad39271462c053463edb4a3d3c19b71b475fa044805d7e2fda39c482eba183f9d1f76fb579a8e47c0c054bb819c2bbcb331c0aac7464c2@34.27.167.246:30303 \
+  --authrpc.addr "0.0.0.0" \
+  --authrpc.port 28551 \
+  --authrpc.vhosts "*" \
+  --authrpc.jwtsecret ./jwt.txt \
+  --http \
+  --http.api admin,debug,eth,net,web3,txpool,miner,taiko \
+  --http.addr "0.0.0.0" \
+  --http.port 28545 \
+  --http.vhosts "*" \
+  --ws \
+  --ws.api admin,debug,eth,net,web3,txpool,miner,taiko \
+  --ws.addr "0.0.0.0" \
+  --ws.port 28546 \
+  --ws.origins "*" \
+  --gpo.ignoreprice "100000000" \
+  --port 30304 \
+  --syncmode full \
+  --state.scheme=path
+```
+
+:::
+
+Start taiko-geth first. It will wait for taiko-client to connect.
+
+### Start taiko-client
+
+Set your L1 endpoint environment variables:
+
+```bash
+export L1_WS=<your-l1-ws-endpoint>
+export L1_BEACON_URL=<your-l1-beacon-http-endpoint>
+```
+
+:::code-group
+
+```bash [Mainnet]
+./bin/taiko-client driver \
+  --l1.ws ${L1_WS} \
+  --l2.ws ws://localhost:28546 \
+  --l1.beacon ${L1_BEACON_URL} \
+  --l2.auth http://localhost:28551 \
+  --taikoInbox 0x06a9Ab27c7e2255df1815E6CC0168d7755Feb19a \
+  --taikoAnchor 0x1670010000000000000000000000000000010001 \
+  --jwtSecret ./jwt.txt \
+  --p2p.sync \
+  --p2p.checkPointSyncUrl https://rpc.mainnet.taiko.xyz
+```
+
+```bash [Hoodi Testnet]
+./bin/taiko-client driver \
+  --l1.ws ${L1_WS} \
+  --l2.ws ws://localhost:28546 \
+  --l1.beacon ${L1_BEACON_URL} \
+  --l2.auth http://localhost:28551 \
+  --taikoInbox 0xf6eA848c7d7aC83de84db45Ae28EAbf377fe0eF9 \
+  --taikoAnchor 0x1670130000000000000000000000000000010001 \
+  --preconfirmation.whitelist 0x83AE31678B9f255346Af4636B4726A84c3bD2886 \
+  --preconfirmation.serverPort 9871 \
+  --jwtSecret ./jwt.txt \
+  --p2p.sync \
+  --p2p.checkPointSyncUrl https://rpc.hoodi.taiko.xyz \
+  --p2p.bootnodes enode://ea5b8a797985f500afa37ba03ce47b0039792a942f0ac9bee9fa19a7a5410273fe43b4e8a9a28fa42cdec1b6435deb809fcb79479c55cc2ddbaf02de7a83f456@35.239.142.239:4001?discport=30304,enode://404e9493066107431bdf3f47bbb360a353244a6069903c76928fca3067575f2adf62ef396b0a8a74696669ef53cab8373e38ddd9b3d3d2d76f356d2cd2708951@34.63.118.244:4001?discport=30304,enode://b2d094ade1ce68990878b197bf818bd41d5b32e4019d42dc63d91d7020f531532f063833e44e84f78792969f69fd5553370216703c40fcc0cb835f17177fbe07@34.63.52.157:4001?discport=30304 \
+  --p2p.listen.ip 0.0.0.0 \
+  --p2p.useragent taiko \
+  --p2p.listen.tcp 4001 \
+  --p2p.advertise.tcp 4001 \
+  --p2p.listen.udp 30303 \
+  --p2p.advertise.udp 30303 \
+  --p2p.peerstore.path ./peerstore \
+  --p2p.discovery.path ./discv5 \
+  --p2p.advertise.ip ${YOUR_EXTERNAL_IP} \
+  --p2p.priv.raw ${PRIVATE_KEY}
+```
+
+:::
+
+:::info
+To run without P2P preconfirmations, remove all `--p2p.*` and `--preconfirmation.*` flags except `--p2p.sync` and `--p2p.checkPointSyncUrl`. Your node will only update when events are emitted on-chain.
+:::
+
+:::warning
+For Hoodi testnet, if you run an Ethereum Hoodi beacon client, configure it for data column sampling (Fusaka upgrade). Required flags by client:
+- **Lighthouse:** `--semi-supernode` or `--supernode`
+- **Teku:** `--p2p-subscribe-all-custody-subnets-enabled`
+- **Grandine:** `--subscribe-all-data-column-subnets`
+- **Lodestar:** `--supernode`
+- **Nimbus:** `--debug-peerdas-supernode`
+
+Alternatively, set a `--blob.server` URL pointing to a blob indexer service.
+:::
+
+::::
+
+## Monitoring
+
+### Grafana Dashboard (Docker)
+
+A Grafana dashboard runs at `http://localhost:3001` (or your custom `GRAFANA_PORT`):
+
+```
+http://localhost:3001/d/L2ExecutionEngine/l2-execution-engine-overview
+```
+
+### Docker CLI Reference
+
+| Action | Command |
+| --- | --- |
+| Start | `docker compose up -d` |
+| Stop | `docker compose down` |
+| Restart | `docker compose down && docker compose up -d` |
+| Update | `git pull origin main && docker compose pull` |
+| Remove (with data) | `docker compose down -v` |
+| View all logs | `docker compose logs -f` |
+| View execution logs | `docker compose logs -f l2_execution_engine` |
+| View driver logs | `docker compose logs -f taiko_client_driver` |
+| Resource usage | `docker stats` |
+
+## Troubleshooting
+
+| Problem | Cause | Fix |
+| --- | --- | --- |
+| `Caught SIGILL in blst_cgo_init` | Older CPU incompatible with blst | Set `CGO_CFLAGS="-O -D__BLST_PORTABLE__"` and `CGO_CFLAGS_ALLOW="-O -D__BLST_PORTABLE__"` |
+| `beacon client not found` | Missing or incorrect `--l1.beacon` flag | Set `L1_BEACON_HTTP` in `.env` or pass `--l1.beacon` with a valid beacon endpoint |
+| `Dial tcp: lookup l2_execution_engine ... server misbehaving` | L1 node out of sync or rate-limited | Verify L1 sync status; run your own L1 node instead of a rate-limited provider |
+| `no service selected` | Outdated simple-taiko-node | Pull the latest version and set `COMPOSE_PROFILES` in `.env` |
+| `failed to check whether L1 chain has been reorged` | BlockPi archive mode disabled | Enable the Archive feature on BlockPi, or use your own L1 node |
+| `Looking for peers` (stuck) | P2P sync issue | Set `DISABLE_P2P_SYNC=true` in `.env` and restart |
+| `Bind for 0.0.0.0:6060 failed: port is already allocated` | Port conflict | Stop the conflicting service or change the port in `.env` |
+| `Required flag "l2.suggestedFeeRecipient" not set` | Spaces in `.env` values | Remove all trailing spaces from `.env` fields |
+| `Unknown shorthand flag: 'd' in -d` | Docker Compose v1 | Upgrade to [Docker Compose v2](https://docs.docker.com/compose/install/linux/) or use `docker-compose up -d` (hyphenated) |
+| `/bin/sh: ... not found` (Windows) | Windows line endings (CRLF) | Delete the repo, run `git config --global core.autocrlf false`, and re-clone |
+| `Dial tcp: connect: connection refused` | Firewall blocking ports | Check firewall rules with `sudo ufw status` and allow the required ports |
+| `No contract code at given address` | Node not synced or wrong network | Wait for L1 to fully sync; verify you are on the correct network |
+| `Database contains incompatible genesis` | Old testnet data | Run `docker compose down -v` to remove old volumes |
+| `genesis header hash mismatch` | Wrong docker-compose file | Use the correct file for your network (e.g., `docker-compose-hoodi.yml` for Hoodi) |

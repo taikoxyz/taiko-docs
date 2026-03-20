@@ -1,0 +1,106 @@
+# Preconfirmations
+
+Based preconfirmations on Taiko.
+
+---
+
+Based preconfirmations give users **early transaction inclusion guarantees** without abandoning based rollup principles. A designated preconfer sequences blocks off-chain and gossips them to the network, providing users with near-instant transaction receipts. The preconfer then proposes the sequenced blocks on-chain to Ethereum L1, preserving Taiko's status as a based rollup.
+
+## What Are Preconfirmations?
+
+A preconfirmation (preconf) is a **cryptographic commitment** from a preconfer that a user's transaction will be included in a specific block with a specific execution outcome. The preconfer builds and propagates L2 blocks off-chain. Nodes on the network treat these blocks as canonical, updating their state immediately.
+
+Without preconfirmations, a based rollup's transaction confirmation time is bounded by L1 block time (12 seconds on Ethereum). Preconfirmations reduce effective confirmation time to the preconfer's configured block time, which could realistically be **500 milliseconds to 2 seconds**.
+
+:::info
+From the user's perspective, preconfirmations are invisible. Users send transactions to the same RPC endpoint as before. The preconfer picks up transactions from the mempool, builds blocks, and propagates them -- no changes to wallets, tooling, or transaction submission flow are required.
+:::
+
+## Types of Preconfirmations
+
+| Type | Guarantee | Use Case |
+|------|-----------|----------|
+| **Inclusion preconfirmation** | Transaction will eventually be included on L1, but no guarantee on execution order or timing. | Basic inclusion assurance. |
+| **Execution preconfirmation** | Transaction will be included with a specific execution ordering and state outcome. | DeFi, trading, gaming -- any application requiring deterministic execution. |
+
+Taiko's implementation provides **execution preconfirmations**, the stronger of the two types. Users receive not just inclusion guarantees but exact execution ordering and state results.
+
+## How Preconfirmations Work on Taiko
+
+### The Sequencing Process
+
+1. A user sends a transaction to the Taiko L2 mempool (via any standard RPC endpoint).
+2. The elected preconfer collects transactions from the mempool, builds an L2 block, and gossips it to the Taiko network.
+3. Full nodes verify the preconfer's signature, execute the block's transactions, and update their local state.
+4. The user receives a transaction receipt immediately -- the transaction is "sequenced."
+
+Blocks can be sequenced on top of other sequenced blocks. A preconfer may sequence hundreds of blocks before proposing any of them on-chain.
+
+### On-Chain Proposal
+
+At some point during their turn, the preconfer proposes the sequenced blocks on-chain to the TaikoInbox contract in a **batch**. This on-chain proposal confirms the sequenced state and makes the blocks eligible for proving.
+
+From the user's perspective, the on-chain proposal is irrelevant -- they received their transaction receipt when the block was sequenced, potentially seconds earlier.
+
+### Preconfer Rotation
+
+Each preconfer is elected for a **32-slot epoch** (approximately 6.4 minutes at Ethereum's 12-second slot time). During this epoch, the preconfer has exclusive sequencing rights. At the end of the epoch, the next preconfer takes over.
+
+## Rollout Stages
+
+Preconfirmations are being rolled out in two stages:
+
+### Stage 1: Whitelisted Preconfirmations (Current)
+
+Three launch partners -- **Nethermind**, **Chainbound**, and **Gattaca** -- each run a preconfer using their own custom solution and are whitelisted in the protocol on-chain. This provides client diversity from day one.
+
+Each partner's solution is fully open source:
+
+- [Chainbound Sidecar](https://github.com/chainbound/taiko-mk1)
+- [Gattaca Sidecar](https://github.com/gattaca-com/taiko-gateway)
+- [Nethermind Sidecar](https://github.com/NethermindEth/Catalyst)
+
+:::warning
+While the whitelist-based approach is technically permissioned, it is a necessary step for testing preconfirmation -- a feature that impacts nearly every aspect of Taiko's codebase. The protocol preserves censorship resistance through the **ForcedInclusionStore** contract, which allows any user to force transaction inclusion regardless of the preconfer.
+:::
+
+### Stage 2: Secured by Stake (Planned)
+
+L1 validators will opt in to become preconfers by staking collateral and registering with the **PreconfServiceManager** contract. Validators can either run their own preconfer software or delegate their preconfirming rights to a third-party solution.
+
+This stage will make preconfirmation fully permissionless and secured by economic stake rather than a whitelist.
+
+## The Preconfer Lifecycle
+
+1. **Registration.** An L1 validator opts in by staking collateral and registering with the PreconfServiceManager contract.
+2. **Election.** For each slot, a single preconfer is elected. If the current L1 block proposer is a registered preconfer, they are chosen. Otherwise, a fallback preconfer is selected.
+3. **Transaction collection.** The preconfer reads transactions from the Taiko L2 public mempool. Transactions with higher L2 priority fees have a better chance of being preconfirmed.
+4. **Block building and propagation.** The preconfer builds L2 blocks and gossips them to the network. This gossip serves as the preconfirmation.
+5. **State sync.** Full nodes verify the preconfer's signature, execute the L2 transactions, and provide users with the latest preconfirmed state.
+6. **L1 inclusion.** The preconfer submits the preconfirmed blocks to the TaikoInbox contract on L1, either through forced inclusion lists in MEV-Boost (if the preconfer is the current slot's proposer) or via the L1 mempool.
+7. **Slashing.** If a preconfer fails to honor commitments -- by not including preconfirmed transactions or submitting an incorrect lookahead -- they face slashing penalties on their staked collateral.
+
+:::info
+Slashing penalties motivate preconfers to honor their commitments, but users do not receive a share of the penalty as compensation for failed inclusion. The penalty serves as a deterrent rather than a restitution mechanism.
+:::
+
+## Configurable Block Time
+
+Because preconfers build blocks off-chain, the L2 block time becomes configurable. A preconfer can set their target block time based on their own profitability and performance analysis:
+
+- **Faster block times** (e.g., 500ms) provide better UX but produce more blocks that must be proved and proposed on-chain.
+- **Slower block times** (e.g., 2s) reduce operational costs but increase user-perceived latency.
+
+The batch-based protocol (Pacaya fork) makes this viable by allowing many small blocks to be proposed on-chain in a single batch, keeping L1 gas costs manageable regardless of block frequency.
+
+## Benefits
+
+- **Faster transaction finality.** Effective confirmation times of 500ms to 2 seconds, compared to 12 seconds without preconfirmations.
+- **Economic security.** Preconfers stake collateral and face slashing for misbehavior, providing economic guarantees beyond trust.
+- **Censorship resistance.** The ForcedInclusionStore contract ensures users can bypass a misbehaving preconfer and force transaction inclusion.
+- **Invisible to users.** No changes to wallets, RPCs, or transaction submission are needed.
+- **Client diversity.** Multiple independent preconfer implementations reduce the risk of a single software bug halting the chain.
+
+## Summary
+
+Based preconfirmations bridge the gap between based rollup decentralization and the fast confirmation times users expect. By allowing elected preconfers to sequence blocks off-chain and then propose them on-chain in batches, Taiko achieves sub-second effective confirmation times while preserving its based rollup architecture, censorship resistance guarantees, and Ethereum alignment.

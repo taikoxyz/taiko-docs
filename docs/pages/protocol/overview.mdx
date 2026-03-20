@@ -1,0 +1,88 @@
+# Protocol Overview
+
+What is Taiko and how does it work.
+
+---
+
+Taiko is an **Ethereum-equivalent (type-1) based rollup** that scales Ethereum without compromising its core properties: censorship resistance, permissionless access, and decentralization. Unlike traditional rollups that rely on centralized sequencers, Taiko delegates block sequencing to Ethereum L1 validators, making it a natural extension of Ethereum itself.
+
+## What Makes Taiko Different
+
+**Based rollup.** Ethereum L1 validators sequence Taiko blocks. There is no centralized sequencer and no additional trust assumptions. Anyone can propose blocks permissionlessly. See [Based Rollups](/protocol/based-rollups) for a deep dive.
+
+**Type-1 ZK-EVM.** Taiko runs an unmodified Ethereum execution layer. Every opcode, every precompile, every tool that works on Ethereum works on Taiko without modification. Developers deploy the same Solidity contracts with the same tooling (Hardhat, Foundry, etc.) -- no code changes needed.
+
+**Multi-proof verification.** Taiko uses a multi-proof architecture combining SGX (TEE-based) proofs and ZK proofs. A single proof type is never sufficient on its own -- multiple independent proof systems must agree on state transitions. See [Proving System](/protocol/proving-system) for details.
+
+## Key Components
+
+| Component | Role |
+|-----------|------|
+| **Proposers** | Submit batches of L2 blocks to Ethereum L1 via the TaikoInbox contract. |
+| **Provers** | Generate validity proofs (SGX + ZK) confirming that proposed blocks were executed correctly. |
+| **TaikoInbox** | L1 smart contract managing the batch lifecycle: proposal, proving, and verification. |
+| **TaikoAnchor** | L2 smart contract that anchors L1 state (block hashes, state roots) into the L2 chain. |
+| **Bridge** | Cross-chain messaging system for transferring assets and messages between L1 and L2. |
+| **Signal Service** | Low-level cross-chain signaling contract used by the bridge for Merkle-proof-based message verification. |
+| **ComposeVerifier** | Verifier contract that orchestrates multiple sub-verifiers (SGX, ZK) for multi-proof validation. |
+
+## How Blocks Flow Through the Protocol
+
+The lifecycle of a Taiko block follows three stages: proposal, proving, and verification.
+
+### 1. Proposed
+
+A proposer submits a batch of L2 blocks to the **TaikoInbox** contract on Ethereum L1 by calling `proposeBatch`. The batch includes transaction data (via calldata or blobs) and metadata. A liveness bond in TAIKO tokens is required from the proposer.
+
+At this point, blocks exist on-chain but have not yet been proven correct. Nodes execute the blocks optimistically.
+
+### 2. Proved
+
+Provers generate validity proofs for the proposed batches. Under the current multi-proof system, each batch requires proofs from at least two independent proof systems (for example, sgxGeth + sgxReth). Provers call `proveBatches` on TaikoInbox, submitting an aggregated proof covering one or more batches.
+
+### 3. Verified
+
+Once a batch has valid proofs and all its ancestor batches back to genesis are also proved, it transitions to the verified state. Verification happens via `verifyBatches`, which can process up to 16 batches at once. A verified block cannot be reverted -- it has the same finality guarantees as a finalized Ethereum block.
+
+:::info
+Taiko allows parallel proof generation. Multiple batches can be proved concurrently, but verification proceeds in order -- a batch is only verified when its parent batch is also verified.
+:::
+
+## Block States Summary
+
+| State | Meaning | Finality |
+|-------|---------|----------|
+| **Proposed** | Submitted to TaikoInbox on L1. Transactions are included but not yet proven. | Soft -- can theoretically be invalidated. |
+| **Proved** | At least one set of validity proofs has been submitted. | Stronger -- cryptographic evidence exists. |
+| **Verified** | All state transitions from genesis to this block have valid proofs. | Final -- equivalent to Ethereum finality. |
+
+A Taiko L2 block also inherits Ethereum's **Safe** and **Finalized** designations. Each L2 block maps to an L1 origin block. If that L1 block is Safe, the L2 block is also considered Safe. The Verified state in Taiko corresponds to Ethereum's Finalized state.
+
+## Current Protocol Design: Pacaya Fork
+
+The Pacaya fork (live since May 2025) introduced several important changes to the protocol:
+
+**Batch-based protocol.** Blocks are proposed in batches rather than individually. Each batch can contain zero, one, or many blocks. All blocks in a batch share metadata and pull transactions from the same data source. This makes small, frequent blocks (needed for preconfirmations) only marginally more expensive than large, infrequent blocks.
+
+**Multi-proof replacing contestation.** The earlier contestable proof system (with guardian provers) was replaced by mandatory multi-proving. Every batch requires proofs from multiple independent verifiers, verified through the ComposeVerifier contract. This simplifies the protocol and removes the security surface that guardian provers introduced.
+
+**Shortened windows.** Proving and cooldown windows are set to 2 hours, with further reductions planned to enable faster withdrawals.
+
+**Key contracts introduced:**
+
+- **TaikoInbox** replaces the former TaikoL1 contract
+- **TaikoAnchor** replaces the former TaikoL2 contract
+- **ComposeVerifier** orchestrates multi-proof verification
+- **ForcedInclusionStore** preserves censorship resistance during the preconfirmation rollout
+
+:::info
+**What's next: Gwyneth.** Taiko Gwyneth is the next-generation protocol design, introducing booster rollups and native cross-chain composability. It represents Taiko's long-term vision for Ethereum scaling.
+:::
+
+## Further Reading
+
+- [Based Rollups](/protocol/based-rollups) -- how L1-sequenced block ordering works
+- [Proving System](/protocol/proving-system) -- multi-proof verification architecture
+- [Bridging](/protocol/bridging) -- cross-chain messaging and asset transfers
+- [Economics](/protocol/economics) -- fees, bonds, and token utility
+- [Preconfirmations](/protocol/preconfirmations) -- faster transaction finality via based preconfirmations

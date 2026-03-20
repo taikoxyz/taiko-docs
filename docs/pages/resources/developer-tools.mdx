@@ -1,0 +1,116 @@
+# Developer Tools
+
+Tools and resources for building on Taiko.
+
+## Block Explorers
+
+| Tool | URL | Notes |
+| --- | --- | --- |
+| **Taikoscan** | [taikoscan.io](https://taikoscan.io) | Primary explorer. Etherscan-compatible API at `api.taikoscan.io/api`. |
+| **Taikoscan (Hoodi)** | [hoodi.taikoscan.io](https://hoodi.taikoscan.io) | Testnet explorer. API at `api-hoodi.taikoscan.io/api`. |
+| **Blockscout** | [blockscout.mainnet.taiko.xyz](https://blockscout.mainnet.taiko.xyz) | Alternative explorer with open-source API. |
+
+## Bridge
+
+| Tool | URL | Notes |
+| --- | --- | --- |
+| **Taiko Bridge** | [bridge.taiko.xyz](https://bridge.taiko.xyz) | Bridge ETH and ERC-20 tokens between Ethereum L1 and Taiko L2. |
+| **Taiko Bridge (Hoodi)** | [bridge.hoodi.taiko.xyz](https://bridge.hoodi.taiko.xyz) | Testnet bridge for Hoodi. |
+
+For programmatic bridging, use the `ERC20Vault` contract directly. See [Bridge Tokens](/guides/bridge-tokens).
+
+## Development Frameworks
+
+| Framework | Setup for Taiko |
+| --- | --- |
+| **Foundry** (recommended) | Add `[profile.taiko]` with `evm_version = "shanghai"` to `foundry.toml`. Build with `FOUNDRY_PROFILE=taiko`. See [Deploy a Contract](/guides/deploy-a-contract). |
+| **Hardhat** | Set `evmVersion: "shanghai"` in `hardhat.config.ts` under `solidity.settings`. |
+| **Remix** | Select "Shanghai" from the EVM version dropdown in compiler settings. |
+
+:::warning
+Taiko runs the **Shanghai** EVM. Solidity 0.8.24+ defaults to Cancun and emits opcodes that do not exist on Taiko. Always target Shanghai.
+:::
+
+## Libraries
+
+| Library | Taiko Support |
+| --- | --- |
+| **viem** | Built-in Taiko chain definitions. Import `taiko` from `viem/chains`. |
+| **ethers.js** | Use standard `JsonRpcProvider` with Taiko RPC URL. |
+| **web3.js** | Use standard `Web3` with Taiko RPC URL. |
+
+## Wallets
+
+Any EVM-compatible wallet works with Taiko. Add the network manually or via [EIP-3085](https://eips.ethereum.org/EIPS/EIP-3085):
+
+| Wallet | Notes |
+| --- | --- |
+| **MetaMask** | Add network with chain ID `167000`. See [Connect to Taiko](/quickstart/connect). |
+| **Rabby** | Auto-detects Taiko. |
+| **Any EVM wallet** | Use the RPC and chain ID from [RPC Endpoints](/network/rpc-endpoints). |
+
+## RPC Providers
+
+| Provider | URL |
+| --- | --- |
+| **Taiko Public RPC** | `https://rpc.mainnet.taiko.xyz` (rate-limited) |
+| **Taiko Hoodi RPC** | `https://rpc.hoodi.taiko.xyz` (rate-limited) |
+| **Ankr** | [ankr.com/rpc/taiko](https://www.ankr.com/rpc/taiko/) |
+| **Tenderly** | [docs.tenderly.co/node/rpc-reference/taiko](https://docs.tenderly.co/node/rpc-reference/taiko) |
+| **Thirdweb** | [thirdweb.com/chainlist](https://thirdweb.com/chainlist?service=rpc-edge&query=taiko) |
+
+For production applications, use a dedicated RPC provider to avoid public rate limits. See [RPC Endpoints](/network/rpc-endpoints) for the full list.
+
+## Oracles
+
+| Provider | Link |
+| --- | --- |
+| **API3** | [market.api3.org/taiko](https://market.api3.org/taiko) |
+| **Pyth Network** | [docs.pyth.network](https://docs.pyth.network/price-feeds/core/use-real-time-data/pull-integration/evm) |
+| **Supra** | [docs.supra.com/oracles](https://docs.supra.com/oracles) |
+| **APRO** | [apro.com/data-push](https://www.apro.com/data-push?chain=taiko-main) |
+
+## Indexing
+
+| Service | Link |
+| --- | --- |
+| **GoldRush (Covalent)** | [goldrush.dev/docs/chains/taiko](https://goldrush.dev/docs/chains/taiko?utm_source=taiko&utm_medium=partner-docs) |
+| **Goldsky** | [docs.goldsky.com/chains/taiko](https://docs.goldsky.com/chains/taiko/?utm_source=taiko&utm_medium=docs) |
+| **The Graph** | Any EVM-compatible subgraph works with Taiko. |
+
+## Monitoring and Debugging
+
+| Tool | Link | Description |
+| --- | --- | --- |
+| **Tenderly Debugger** | [tenderly.co](https://tenderly.co?mtm_campaign=ext-docs&mtm_kwd=taiko) | Step-by-step transaction debugging with expression evaluation. |
+| **Tenderly Alerts** | [docs.tenderly.co/alerts](https://docs.tenderly.co/alerts/intro-to-alerts?mtm_campaign=ext-docs&mtm_kwd=taiko) | Notifications and webhooks on contract interactions. |
+| **Tenderly Simulations** | [docs.tenderly.co/simulations](https://docs.tenderly.co/simulations/single-simulations?mtm_campaign=ext-docs&mtm_kwd=taiko) | Predict transaction outcomes before sending. |
+| **Taiko Status** | [status.taiko.xyz](https://status.taiko.xyz/) | Network status page. |
+
+## Testing
+
+Use the **Hoodi testnet** (chain ID `167013`) for development and testing:
+
+| Resource | Value |
+| --- | --- |
+| RPC | `https://rpc.hoodi.taiko.xyz` |
+| Explorer | [hoodi.taikoscan.io](https://hoodi.taikoscan.io) |
+| Bridge | [bridge.hoodi.taiko.xyz](https://bridge.hoodi.taiko.xyz) |
+| Faucet | Get ETH from an Ethereum Hoodi faucet, then bridge to Taiko Hoodi |
+
+## Account Abstraction
+
+| Provider | Link |
+| --- | --- |
+| **Thirdweb** | [thirdweb.com/taiko](https://thirdweb.com/taiko) |
+| **Openfort** | [openfort.io](https://openfort.io) |
+
+## AI Tools
+
+| Resource | URL | Description |
+| --- | --- | --- |
+| **SKILL.md** | [docs.taiko.xyz/SKILL.md](https://docs.taiko.xyz/SKILL.md) | Structured reference for AI coding agents — network details, deployment commands, contract addresses. |
+| **llms.txt** | [docs.taiko.xyz/llms.txt](https://docs.taiko.xyz/llms.txt) | Lightweight docs summary for LLM context windows. |
+| **llms-full.txt** | [docs.taiko.xyz/llms-full.txt](https://docs.taiko.xyz/llms-full.txt) | Full documentation in plain text for bulk LLM ingestion. |
+
+See [Agent Quickstart](/quickstart/agent) for how to use these with your AI coding agent.

@@ -1,0 +1,93 @@
+# FAQ
+
+Frequently asked questions about Taiko.
+
+## General
+
+### What is Taiko?
+
+Taiko is a **based rollup** on Ethereum with a **type-1 ZK-EVM**. It is fully Ethereum-equivalent at the protocol level, meaning any smart contract or tool that works on Ethereum works on Taiko without modification. Unlike most L2s, Taiko has no centralized sequencer — L1 Ethereum validators sequence L2 blocks, inheriting Ethereum's liveness and censorship resistance.
+
+### What makes Taiko different from other L2s?
+
+Three things set Taiko apart:
+
+1. **Based sequencing.** There is no centralized sequencer. Anyone can propose blocks, and L1 validators are the ultimate sequencers. This means Taiko inherits Ethereum's decentralization and censorship resistance from day one.
+2. **Type-1 EVM equivalence.** Taiko makes zero changes to the Ethereum execution environment — same opcodes, same state model, same gas costs. Contracts deploy to Taiko exactly as they deploy to Ethereum.
+3. **Multi-proof system.** Blocks are verified by multiple proof types (SGX and ZK) with a contestation mechanism. This provides defense in depth: no single proof system is a single point of failure.
+
+### Does Taiko have a sequencer?
+
+No. Taiko is a **based rollup**, which means anyone can propose L2 blocks permissionlessly. The L1 Ethereum validator for the current slot is the effective sequencer. See [Based Rollups](/protocol/based-rollups) for details.
+
+### Is Taiko open source?
+
+Yes. Taiko is open source under the permissive MIT license. The Geth fork ([taiko-geth](https://github.com/taikoxyz/taiko-geth)) retains the original Geth GPL license. All protocol contracts, client software, and tooling are available at [github.com/taikoxyz](https://github.com/taikoxyz).
+
+### What's the current testnet?
+
+**Taiko Hoodi** (chain ID `167013`). Previous testnets — Hekla, Grimsvotn, Eldfell, and others — are deprecated and no longer operational. Use Hoodi for all testing.
+
+- RPC: `https://rpc.hoodi.taiko.xyz`
+- Explorer: [hoodi.taikoscan.io](https://hoodi.taikoscan.io)
+- Bridge: [bridge.hoodi.taiko.xyz](https://bridge.hoodi.taiko.xyz)
+
+### Where do I get testnet ETH?
+
+1. Get Hoodi L1 testnet ETH from an Ethereum Hoodi faucet (search for "Hoodi faucet" — several are available).
+2. Bridge the ETH to Taiko Hoodi using the [testnet bridge](https://bridge.hoodi.taiko.xyz).
+
+### How do I bridge tokens to Taiko?
+
+**UI:** Use the [Taiko Bridge](https://bridge.taiko.xyz) for a guided experience.
+
+**Programmatically:** Approve and call `sendToken` on the `ERC20Vault` contract. See [Bridge Tokens](/guides/bridge-tokens) for a complete walkthrough with code examples.
+
+### Where can I find deployed contract addresses?
+
+See [Contract Addresses](/network/contract-addresses) for both Taiko mainnet and Hoodi testnet addresses.
+
+## Developer FAQ
+
+### How do I use Taiko with an AI coding agent?
+
+Point your agent at `https://docs.taiko.xyz/SKILL.md`. This file is designed for AI consumption and contains everything an agent needs — network details, deployment commands, contract addresses, and common patterns. See also the [Agent Quickstart](/quickstart/agent).
+
+### Why is my contract deployment failing on Taiko?
+
+The most common cause: **Taiko runs the Shanghai EVM**. Solidity 0.8.24+ defaults to the Cancun EVM and emits opcodes (`TSTORE`, `TLOAD`, `MCOPY`, `BLOBHASH`, `BLOBBASEFEE`) that do not exist on Taiko. The deployment will revert with no useful error message.
+
+**Fix:** Set `evm_version = "shanghai"` in your `foundry.toml`:
+
+```toml
+[profile.taiko]
+evm_version = "shanghai"
+```
+
+Then build and deploy with `FOUNDRY_PROFILE=taiko forge build`. See [Deploy a Contract](/guides/deploy-a-contract) for the full guide.
+
+### How can I get the L1 block number from L2?
+
+Query the `TaikoAnchor` contract on L2. This predeployed contract anchors L1 state into every L2 block and exposes the last synced L1 block height. See [Contract Addresses](/network/contract-addresses) for the TaikoAnchor address.
+
+### What RPC endpoints should I use?
+
+| Network | RPC URL | Chain ID |
+| --- | --- | --- |
+| Mainnet | `https://rpc.mainnet.taiko.xyz` | `167000` |
+| Hoodi Testnet | `https://rpc.hoodi.taiko.xyz` | `167013` |
+
+The public RPCs are rate-limited. For production use, consider a third-party RPC provider. See [RPC Endpoints](/network/rpc-endpoints) for a full list.
+
+### Can I use Hardhat or Remix instead of Foundry?
+
+Yes. Taiko is fully Ethereum-equivalent, so any EVM development framework works. The key requirement is setting the EVM target to **Shanghai**:
+
+- **Hardhat:** Set `evmVersion: "shanghai"` in `hardhat.config.ts` under `solidity.settings`.
+- **Remix:** Select "Shanghai" from the EVM version dropdown in the compiler settings.
+
+Foundry is recommended because it offers the most streamlined deployment and verification workflow for Taiko.
+
+### I ran a node on a previous testnet. Do I need to do anything different?
+
+Yes. Previous testnet configurations are no longer valid. Update your node software and switch to Taiko Hoodi. See [Run a Node](/guides/run-a-node) for current instructions.

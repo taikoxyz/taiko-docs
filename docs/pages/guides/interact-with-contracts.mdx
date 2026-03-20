@@ -1,0 +1,228 @@
+# Interact with Contracts
+
+Read on-chain state and send transactions on Taiko using `cast` and `viem`.
+
+:::code-group
+
+```txt [Agent]
+Read https://docs.taiko.xyz/SKILL.md and read the balance of ADDRESS on Taiko
+```
+
+```txt [Human]
+Follow the step-by-step guide below.
+```
+
+:::
+
+## RPC endpoints
+
+:::code-group
+
+```bash [Mainnet]
+export RPC_URL=https://rpc.mainnet.taiko.xyz
+```
+
+```bash [Hoodi Testnet]
+export RPC_URL=https://rpc.hoodi.taiko.xyz
+```
+
+:::
+
+## Read operations
+
+### Check ETH balance
+
+:::code-group
+
+```bash [cast]
+cast balance $ADDRESS --rpc-url $RPC_URL
+```
+
+```ts [viem]
+import { createPublicClient, http, formatEther } from "viem";
+import { taiko } from "viem/chains";
+
+const client = createPublicClient({
+  chain: taiko,
+  transport: http("https://rpc.mainnet.taiko.xyz"),
+});
+
+const balance = await client.getBalance({ address: "0xYourAddress" });
+console.log(formatEther(balance));
+```
+
+:::
+
+### Check ERC-20 balance
+
+:::code-group
+
+```bash [cast]
+# USDC on Taiko
+cast call 0x07d83526730c7438048D55A4fc0b850e2aaB6f0b \
+  "balanceOf(address)(uint256)" \
+  $ADDRESS \
+  --rpc-url $RPC_URL
+```
+
+```ts [viem]
+import { createPublicClient, http, erc20Abi } from "viem";
+import { taiko } from "viem/chains";
+
+const client = createPublicClient({
+  chain: taiko,
+  transport: http("https://rpc.mainnet.taiko.xyz"),
+});
+
+const balance = await client.readContract({
+  address: "0x07d83526730c7438048D55A4fc0b850e2aaB6f0b", // USDC
+  abi: erc20Abi,
+  functionName: "balanceOf",
+  args: ["0xYourAddress"],
+});
+console.log(balance);
+```
+
+:::
+
+### Read storage slots
+
+```bash
+# Read slot 0 of a contract
+cast storage $CONTRACT_ADDRESS 0 --rpc-url $RPC_URL
+```
+
+### Call arbitrary view functions
+
+:::code-group
+
+```bash [cast]
+cast call $CONTRACT_ADDRESS \
+  "totalSupply()(uint256)" \
+  --rpc-url $RPC_URL
+```
+
+```ts [viem]
+const result = await client.readContract({
+  address: "0xContractAddress",
+  abi: [{ name: "totalSupply", type: "function", inputs: [], outputs: [{ type: "uint256" }], stateMutability: "view" }],
+  functionName: "totalSupply",
+});
+```
+
+:::
+
+## Write operations
+
+### Send ETH
+
+:::code-group
+
+```bash [cast]
+cast send $RECIPIENT \
+  --value 0.1ether \
+  --rpc-url $RPC_URL \
+  --private-key $PRIVATE_KEY
+```
+
+```ts [viem]
+import { createWalletClient, http, parseEther } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { taiko } from "viem/chains";
+
+const account = privateKeyToAccount("0xYourPrivateKey");
+const wallet = createWalletClient({
+  account,
+  chain: taiko,
+  transport: http("https://rpc.mainnet.taiko.xyz"),
+});
+
+const hash = await wallet.sendTransaction({
+  to: "0xRecipient",
+  value: parseEther("0.1"),
+});
+```
+
+:::
+
+### ERC-20 transfer
+
+:::code-group
+
+```bash [cast]
+cast send 0x07d83526730c7438048D55A4fc0b850e2aaB6f0b \
+  "transfer(address,uint256)" \
+  $RECIPIENT \
+  $(cast --to-wei 50 6) \
+  --rpc-url $RPC_URL \
+  --private-key $PRIVATE_KEY
+```
+
+```ts [viem]
+import { createWalletClient, http, erc20Abi, parseUnits } from "viem";
+import { privateKeyToAccount } from "viem/accounts";
+import { taiko } from "viem/chains";
+
+const account = privateKeyToAccount("0xYourPrivateKey");
+const wallet = createWalletClient({
+  account,
+  chain: taiko,
+  transport: http("https://rpc.mainnet.taiko.xyz"),
+});
+
+const hash = await wallet.writeContract({
+  address: "0x07d83526730c7438048D55A4fc0b850e2aaB6f0b", // USDC
+  abi: erc20Abi,
+  functionName: "transfer",
+  args: ["0xRecipient", parseUnits("50", 6)],
+});
+```
+
+:::
+
+### ERC-20 approve
+
+:::code-group
+
+```bash [cast]
+cast send 0x07d83526730c7438048D55A4fc0b850e2aaB6f0b \
+  "approve(address,uint256)" \
+  $SPENDER \
+  $(cast --to-wei 1000 6) \
+  --rpc-url $RPC_URL \
+  --private-key $PRIVATE_KEY
+```
+
+```ts [viem]
+const hash = await wallet.writeContract({
+  address: "0x07d83526730c7438048D55A4fc0b850e2aaB6f0b", // USDC
+  abi: erc20Abi,
+  functionName: "approve",
+  args: ["0xSpender", parseUnits("1000", 6)],
+});
+```
+
+:::
+
+## Common patterns
+
+### Check token allowance
+
+```bash
+cast call 0x07d83526730c7438048D55A4fc0b850e2aaB6f0b \
+  "allowance(address,address)(uint256)" \
+  $OWNER $SPENDER \
+  --rpc-url $RPC_URL
+```
+
+### Get transaction receipt
+
+```bash
+cast receipt $TX_HASH --rpc-url $RPC_URL
+```
+
+### Decode calldata
+
+```bash
+cast 4byte-decode $CALLDATA
+```
