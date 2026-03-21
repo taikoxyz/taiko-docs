@@ -195,6 +195,6 @@ For the bridge UI: `https://bridge.taiko.xyz`
 
 For detailed guides, protocol design, node operation, and more:
 
-- All docs: `https://docs.taiko.xyz/llms-full.txt`
-- Docs index: `https://docs.taiko.xyz/llms.txt`
-- Web docs: `https://docs.taiko.xyz`
+- All docs: `https://taiko-agent-docs.vercel.app/llms-full.txt`
+- Docs index: `https://taiko-agent-docs.vercel.app/llms.txt`
+- Web docs: `https://taiko-agent-docs.vercel.app`

@@ -15,18 +15,18 @@ For a quick start, see the [Agent Quickstart](/quickstart/agent). This page cove
 # ---
 # description: Set up Taiko context
 # ---
-# Fetch https://docs.taiko.xyz/SKILL.md and use it as reference
+# Fetch https://taiko-agent-docs.vercel.app/SKILL.md and use it as reference
 # for all Taiko deployments. Always use FOUNDRY_PROFILE=taiko.
 
 # Or use it directly in a prompt:
-claude "Read https://docs.taiko.xyz/SKILL.md and deploy src/Counter.sol to Taiko mainnet"
+claude "Read https://taiko-agent-docs.vercel.app/SKILL.md and deploy src/Counter.sol to Taiko mainnet"
 ```
 
 ```md [Cursor]
 Add to `.cursor/rules`:
 
 When working with Taiko:
-1. Fetch https://docs.taiko.xyz/SKILL.md for network config and addresses
+1. Fetch https://taiko-agent-docs.vercel.app/SKILL.md for network config and addresses
 2. Always set evm_version = "shanghai" in foundry.toml
 3. Use FOUNDRY_PROFILE=taiko for all forge commands
 4. Verify contracts with --verifier-url https://api.taikoscan.io/api
@@ -34,14 +34,14 @@ When working with Taiko:
 
 ```bash [Codex CLI]
 # Pass SKILL.md as context
-codex --context "$(curl -s https://docs.taiko.xyz/SKILL.md)" \
+codex --context "$(curl -s https://taiko-agent-docs.vercel.app/SKILL.md)" \
   "Deploy src/Counter.sol to Taiko mainnet and verify it"
 ```
 
 ```bash [Generic]
 # Any agent that accepts a system prompt or context file:
 # 1. Fetch the skill file
-curl -s https://docs.taiko.xyz/SKILL.md > .taiko-context.md
+curl -s https://taiko-agent-docs.vercel.app/SKILL.md > .taiko-context.md
 
 # 2. Include it in your agent's context window
 # 3. Prompt: "Deploy and verify src/MyContract.sol on Taiko mainnet"
@@ -92,7 +92,7 @@ Every page is available as raw Markdown by appending `.md` to the URL:
 ### Deploy and verify
 
 ```
-Read https://docs.taiko.xyz/SKILL.md and deploy and verify src/Counter.sol on Taiko mainnet
+Read https://taiko-agent-docs.vercel.app/SKILL.md and deploy and verify src/Counter.sol on Taiko mainnet
 ```
 
 The agent will:
@@ -103,7 +103,7 @@ The agent will:
 ### Bridge tokens
 
 ```
-Read https://docs.taiko.xyz/SKILL.md and bridge 100 USDC from Ethereum to Taiko
+Read https://taiko-agent-docs.vercel.app/SKILL.md and bridge 100 USDC from Ethereum to Taiko
 ```
 
 The agent will:
@@ -114,7 +114,7 @@ The agent will:
 ### Multi-chain dApp configuration
 
 ```
-Read https://docs.taiko.xyz/SKILL.md and add Taiko mainnet and Hoodi testnet to my wagmi config
+Read https://taiko-agent-docs.vercel.app/SKILL.md and add Taiko mainnet and Hoodi testnet to my wagmi config
 ```
 
 The agent will:
