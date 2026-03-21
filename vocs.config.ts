@@ -15,6 +15,10 @@ export default defineConfig({
   aiCta: true,
   checkDeadlinks: 'warn',
 
+  llms: {
+    generateMarkdown: true,
+  },
+
   font: {
     google: 'Public Sans',
   },
