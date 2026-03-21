@@ -1,38 +1,10 @@
 # Using Taiko with Agents
 
-Taiko provides machine-readable documentation and a structured skill file so AI coding agents can deploy, bridge, verify, and interact with contracts without manual copy-paste.
+Platform-specific setup, integration patterns, and best practices for building AI agent workflows on Taiko.
 
-## Why Taiko is agent-friendly
-
-- **Standard EVM tooling.** Foundry, Hardhat, viem, ethers.js all work out of the box. No custom plugins.
-- **SKILL.md.** A single file at `https://docs.taiko.xyz/SKILL.md` containing every address, RPC URL, and command pattern an agent needs.
-- **Machine-readable docs.** Vocs auto-generates `llms.txt`, `llms-full.txt`, and `.md` variants of every page for LLM consumption.
-
-## SKILL.md
-
-[`SKILL.md`](https://docs.taiko.xyz/SKILL.md) is a structured reference file designed for agent context injection. It contains:
-
-- Network configuration (chain IDs, RPC URLs, explorer URLs)
-- Contract addresses (bridges, vaults, signal services)
-- Foundry configuration for the Shanghai EVM
-- Command templates for deployment, verification, and bridging
-- Common gotchas (EVM version, gas limits)
-
-Fetch and inject it into your agent's context before any Taiko-related task:
-
-```bash
-curl -s https://docs.taiko.xyz/SKILL.md
-```
-
-## Machine-readable docs
-
-Every page on `docs.taiko.xyz` is available in Markdown:
-
-| Resource | URL |
-| --- | --- |
-| LLMs index | `https://docs.taiko.xyz/llms.txt` |
-| Full docs (single file) | `https://docs.taiko.xyz/llms-full.txt` |
-| Any page as Markdown | Append `.md` to the URL (e.g., `https://docs.taiko.xyz/guides/deploy-a-contract.md`) |
+:::info
+For a quick start, see the [Agent Quickstart](/quickstart/agent). This page covers deeper integration patterns.
+:::
 
 ## Platform setup
 
@@ -77,6 +49,44 @@ curl -s https://docs.taiko.xyz/SKILL.md > .taiko-context.md
 
 :::
 
+## Why Taiko is agent-friendly
+
+- **Standard EVM tooling.** Foundry, Hardhat, viem, ethers.js all work out of the box. No custom plugins or SDKs required.
+- **SKILL.md.** A single file at [`/SKILL.md`](/SKILL.md) containing every address, RPC URL, and command pattern an agent needs.
+- **Machine-readable docs.** Vocs auto-generates `llms.txt`, `llms-full.txt`, and `.md` variants of every page for LLM consumption.
+
+## Integration patterns
+
+### Persistent context injection
+
+For agents that support persistent context (Cursor rules, Claude Code commands, Windsurf rules), add SKILL.md as a permanent reference. This avoids re-fetching on every prompt.
+
+### Per-prompt injection
+
+For stateless agents, include the SKILL.md URL in every prompt. Agents have no persistent memory of past sessions — re-inject the skill file each time.
+
+### Machine-readable docs
+
+Every page is available as raw Markdown by appending `.md` to the URL:
+
+```
+/guides/deploy-a-contract.md
+```
+
+| Resource | URL |
+| --- | --- |
+| LLMs index | [`/llms.txt`](/llms.txt) |
+| Full docs (single file) | [`/llms-full.txt`](/llms-full.txt) |
+| Any page as Markdown | Append `.md` to any page URL |
+
+## Best practices
+
+- **Always use `FOUNDRY_PROFILE=taiko`.** This ensures Shanghai EVM compilation. Forgetting this is the most common deployment failure.
+- **Test on Hoodi first.** Chain ID `167013`, RPC `https://rpc.hoodi.taiko.xyz`. Use testnet for iteration before mainnet deployment.
+- **Verify addresses against SKILL.md.** Contract addresses can change across upgrades. Always fetch the latest SKILL.md rather than relying on cached values.
+- **Pin the EVM version.** Even if your Solidity version supports Cancun, Taiko requires Shanghai. Always set `evm_version = "shanghai"`.
+- **Include SKILL.md in every prompt.** Agents have no persistent memory of past sessions. Re-inject the skill file each time.
+
 ## Example workflows
 
 ### Deploy and verify
@@ -101,16 +111,6 @@ The agent will:
 2. Approve the L1 ERC20Vault
 3. Call `sendToken` with the correct parameters
 
-### Verify an existing contract
-
-```
-Read https://docs.taiko.xyz/SKILL.md and verify my contract at 0x1234... on Taiko mainnet
-```
-
-The agent will:
-1. Read SKILL.md for the Taikoscan API URL
-2. Run `forge verify-contract` with Shanghai EVM settings
-
 ### Multi-chain dApp configuration
 
 ```
@@ -120,11 +120,3 @@ Read https://docs.taiko.xyz/SKILL.md and add Taiko mainnet and Hoodi testnet to 
 The agent will:
 1. Read SKILL.md for chain IDs and RPC URLs
 2. Add `defineChain` entries or import from `viem/chains`
-
-## Best practices
-
-- **Always use `FOUNDRY_PROFILE=taiko`.** This ensures Shanghai EVM compilation. Forgetting this is the most common deployment failure.
-- **Test on Hoodi first.** Chain ID `167013`, RPC `https://rpc.hoodi.taiko.xyz`. Use testnet for iteration before mainnet deployment.
-- **Verify addresses against SKILL.md.** Contract addresses can change across upgrades. Always fetch the latest SKILL.md rather than relying on cached values.
-- **Pin the EVM version.** Even if your Solidity version supports Cancun, Taiko requires Shanghai. Always set `evm_version = "shanghai"`.
-- **Include SKILL.md in every prompt.** Agents have no persistent memory of past sessions. Re-inject the skill file each time.

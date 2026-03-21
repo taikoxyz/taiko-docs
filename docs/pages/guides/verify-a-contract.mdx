@@ -2,17 +2,20 @@
 
 Verify deployed contracts on Taikoscan so anyone can read and audit the source code.
 
-:::code-group
+## Prompt mode
 
-```txt [Agent]
-Read https://docs.taiko.xyz/SKILL.md and verify my contract at ADDRESS on Taiko
+Paste this into your coding agent to verify a contract in one prompt:
+
+```
+Reference https://docs.taiko.xyz/SKILL.md
+
+Verify my contract at 0xYOUR_ADDRESS on Taiko mainnet.
+Use FOUNDRY_PROFILE=taiko and the Taikoscan API.
 ```
 
-```txt [Human]
-Follow the step-by-step guide below.
-```
+---
 
-:::
+## Manual mode
 
 :::warning
 The **#1 cause of verification failure** is an EVM version mismatch. Taiko runs **Shanghai**. If you compiled with Cancun (the Solidity 0.8.24+ default), the bytecode will not match and verification will fail. Always compile with `evm_version = "shanghai"`.

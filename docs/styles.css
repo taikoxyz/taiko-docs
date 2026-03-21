@@ -1,10 +1,13 @@
 /* ============================================================
    Taiko Docs — Custom Theme
 
-   Brand: Taiko pink #E81899, Deep Gray #0B0B0B
-   Fonts: Public Sans (body), system mono
+   Brand: Taiko pink #E81899, Deep Gray #0B101B
+   Fonts: Clash Grotesk (headings), Public Sans (body), system mono
    Approach: Clean, professional dark docs. Pink as accent only.
    ============================================================ */
+
+/* --- Clash Grotesk display font --- */
+@import url('https://api.fontshare.com/v2/css?f[]=clash-grotesk@400,500,600,700&display=swap');
 
 /* --- Color foundation --- */
 :root {
@@ -13,11 +16,11 @@
   --taiko-pink-glow: rgba(232, 24, 153, 0.12);
   --taiko-pink-subtle: rgba(232, 24, 153, 0.06);
 
-  --surface-0: #0b0b0b;
-  --surface-1: #111113;
-  --surface-2: #191919;
-  --surface-3: #222222;
-  --surface-4: #2a2a2a;
+  --surface-0: #050912;
+  --surface-1: #0b101b;
+  --surface-2: #191e28;
+  --surface-3: #2b303b;
+  --surface-4: #444a55;
 
   --border-subtle: rgba(255, 255, 255, 0.07);
   --border-default: rgba(255, 255, 255, 0.12);
@@ -54,7 +57,7 @@
 /* --- Top nav --- */
 .vocs_NavBar {
   border-bottom: 1px solid var(--border-subtle) !important;
-  background: rgba(11, 11, 11, 0.8) !important;
+  background: rgba(11, 16, 27, 0.8) !important;
   backdrop-filter: blur(16px);
 }
 
@@ -79,15 +82,17 @@
 
 /* --- Content typography --- */
 .vocs_Content h1 {
+  font-family: 'Clash Grotesk', sans-serif !important;
   font-size: 2rem !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   letter-spacing: -0.025em !important;
   line-height: 1.2 !important;
 }
 
 .vocs_Content h2 {
+  font-family: 'Clash Grotesk', sans-serif !important;
   font-size: 1.35rem !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   letter-spacing: -0.02em !important;
   margin-top: 2.5rem !important;
   padding-bottom: 0.5rem !important;

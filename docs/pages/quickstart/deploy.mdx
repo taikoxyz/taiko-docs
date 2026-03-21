@@ -2,17 +2,20 @@
 
 Deploy and verify your first smart contract on Taiko.
 
-:::code-group
+## Prompt mode
 
-```txt [Agent]
-Read https://docs.taiko.xyz/SKILL.md and deploy my contract to Taiko mainnet
+Paste this into your coding agent to deploy a contract in one prompt:
+
+```
+Reference https://docs.taiko.xyz/SKILL.md
+
+Deploy and verify src/Counter.sol on Taiko mainnet.
+Use FOUNDRY_PROFILE=taiko to target Shanghai EVM.
 ```
 
-```txt [Human]
-Follow the step-by-step guide below.
-```
+---
 
-:::
+## Manual mode
 
 :::warning
 Taiko runs the **Shanghai** EVM. Solidity 0.8.24+ defaults to Cancun opcodes (`MCOPY`, `TSTORE`, etc.) that do not exist on Taiko. Set `evm_version = "shanghai"` or your deployment will revert.

@@ -153,7 +153,11 @@ curl http://localhost:8547 \
   --data '{"method":"eth_chainId","params":[],"id":1,"jsonrpc":"2.0"}'
 ```
 
-Expected response for mainnet: `"result":"0x28c61"` (chain ID 167009).
+Expected response for mainnet: `"result":"0x28c58"` (chain ID 167000).
+
+:::info
+The `--networkid` flag used by taiko-geth (`167009`) is the P2P network identifier, not the chain ID. The `eth_chainId` RPC returns the chain ID from genesis, which is `167000`.
+:::
 
 Check sync progress:
 
@@ -314,7 +318,7 @@ export L1_BEACON_URL=<your-l1-beacon-http-endpoint>
   --l1.beacon ${L1_BEACON_URL} \
   --l2.auth http://localhost:28551 \
   --taikoInbox 0x06a9Ab27c7e2255df1815E6CC0168d7755Feb19a \
-  --taikoAnchor 0x1670010000000000000000000000000000010001 \
+  --taikoAnchor 0x1670000000000000000000000000000000010001 \
   --jwtSecret ./jwt.txt \
   --p2p.sync \
   --p2p.checkPointSyncUrl https://rpc.mainnet.taiko.xyz

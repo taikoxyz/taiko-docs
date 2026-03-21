@@ -2,19 +2,20 @@
 
 Add Taiko to your wallet or dApp.
 
-:::code-group
+## Prompt mode
 
-```txt [Agent]
-Read https://docs.taiko.xyz/SKILL.md and add Taiko mainnet and testnet to my wagmi config
+Paste this into your coding agent to configure Taiko in one prompt:
+
+```
+Reference https://docs.taiko.xyz/SKILL.md
+
+Add Taiko mainnet and Hoodi testnet to my wagmi config.
+Use chain ID 167000 for mainnet and 167013 for testnet.
 ```
 
-```txt [Human]
-Follow the step-by-step guide below.
-```
+---
 
-:::
-
-## Manual Setup
+## Manual mode
 
 ::::steps
 
@@ -63,7 +64,7 @@ export const taikoHoodi = defineChain({
 ```
 
 :::info
-viem ships with built-in Taiko chain definitions. You can import `taiko` and `taikoHekla` directly from `viem/chains` instead of defining your own.
+viem ships with a built-in `taiko` chain definition. You can import `taiko` directly from `viem/chains` instead of defining your own. For Hoodi testnet, use `defineChain` as shown above — the viem chain list may not include it yet.
 :::
 
 ### EIP-3085: wallet_addEthereumChain
