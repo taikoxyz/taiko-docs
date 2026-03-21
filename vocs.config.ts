@@ -4,7 +4,6 @@ export default defineConfig({
   title: 'Taiko Docs',
   titleTemplate: '%s – Taiko',
   description: 'Documentation for Taiko, a based rollup on Ethereum',
-  baseUrl: 'https://docs.taiko.xyz',
 
   logoUrl: { dark: '/logo-dark.svg', light: '/logo-light.svg' },
 
@@ -26,10 +25,7 @@ export default defineConfig({
     { icon: 'x', link: 'https://x.com/taborrollup' },
   ],
 
-  editLink: {
-    pattern: 'https://github.com/taikoxyz/taiko-mono/edit/main/packages/docs-site/docs/pages/:path',
-    text: 'Edit on GitHub',
-  },
+  // editLink will be configured once the repo is pushed to GitHub
 
   sidebar: [
     {
