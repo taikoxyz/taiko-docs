@@ -1,8 +1,10 @@
 # Taiko Docs
 
-Documentation site for [Taiko](https://taiko.xyz), a based rollup on Ethereum.
+> **Work in progress.** This is not the current live documentation site. It is under active development and not yet deployed to the official domain.
 
-Built with [Vocs](https://vocs.dev) and optimized for AI agent consumption.
+Agent-first documentation for [Taiko](https://taiko.xyz), a based rollup on Ethereum.
+
+Built with [Vocs](https://vocs.dev). Every page is designed for both human developers and AI agents, with machine-readable formats generated automatically.
 
 ## Development
 
