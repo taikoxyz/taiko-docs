@@ -65,17 +65,18 @@ Block time is **variable**, typically 2--6 seconds. It depends on based preconfi
 
 ## Proving System
 
-Taiko uses a **multi-proof system** with contestable validity proofs:
+Taiko uses a **multi-proof system** requiring multiple independent proof types to agree on every state transition:
 
-| Proof Tier    | Description                          |
+| Proof Type    | Description                          |
 | ------------- | ------------------------------------ |
-| SGX           | TEE-based attestation (fast)         |
+| SGX (Reth)    | TEE-based attestation, Rust client   |
+| SGX (Geth)    | TEE-based attestation, Go client     |
 | ZK (RISC0)    | RISC Zero zkVM proof                 |
 | ZK (SP1)      | Succinct SP1 proof                   |
 
-- Proofs are contestable: anyone can challenge a proof by posting a bond.
-- Higher-tier proofs override lower-tier proofs during contests.
-- Bonds are slashed if a proof is successfully contested.
+- Every batch requires proofs from at least two independent proof systems.
+- The ComposeVerifier contract orchestrates verification across sub-verifiers.
+- This provides both proof diversity and client diversity, reducing correlated failure risk.
 
 ## Gas and Fee Model
 

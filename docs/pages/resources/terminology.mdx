@@ -10,7 +10,7 @@ A rollup where L1 validators sequence blocks rather than a centralized sequencer
 
 ### Bond
 
-TAIKO tokens staked by provers as a guarantee of proof validity. If a proof is successfully contested, the bond is forfeited to the challenger. Bonds create economic accountability in the proving system.
+See [Liveness bond](#liveness-bond).
 
 ### Bridge
 
@@ -18,11 +18,7 @@ The cross-chain messaging system connecting Ethereum L1 and Taiko L2. The bridge
 
 ### ComposeVerifier
 
-A smart contract that combines multiple proof verifiers into a single verification step. It allows the protocol to require that a block passes verification by more than one proof type (for example, both SGX and ZK) before being accepted.
-
-### Contestation
-
-The process of challenging a proof's validity by posting a competing proof backed by a bond. If the contestation succeeds, the original prover's bond is forfeited. This mechanism ensures that invalid proofs can be caught and corrected. See [Proving System](/protocol/proving-system).
+A smart contract that orchestrates multi-proof verification. It requires multiple independent proof systems (e.g., sgxReth + sgxGeth) to agree on each batch before accepting it as proved. See [Proving System](/protocol/proving-system).
 
 ### ERC20Vault
 
@@ -42,7 +38,7 @@ An early guarantee of transaction inclusion from an L1 validator before the bloc
 
 ### Proof tier
 
-A category of proof type with associated bond requirements and trust assumptions. Taiko supports multiple proof tiers — for example, SGX proofs (faster, hardware-based trust) and ZK proofs (slower, cryptographic trust). Higher tiers can contest lower tiers. See [Proving System](/protocol/proving-system).
+A category of proof type with associated trust assumptions. Taiko supports multiple proof tiers — for example, SGX proofs (faster, hardware-based trust) and ZK proofs (slower, cryptographic trust). The multi-proof system requires agreement across independent proof types. See [Proving System](/protocol/proving-system).
 
 ### Proposer
 

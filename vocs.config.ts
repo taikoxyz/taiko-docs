@@ -26,7 +26,7 @@ export default defineConfig({
   socials: [
     { icon: 'github', link: 'https://github.com/taikoxyz' },
     { icon: 'discord', link: 'https://discord.gg/taikoxyz' },
-    { icon: 'x', link: 'https://x.com/taborrollup' },
+    { icon: 'x', link: 'https://x.com/taikoxyz' },
   ],
 
   // editLink will be configured once the repo is pushed to GitHub

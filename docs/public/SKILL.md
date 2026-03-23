@@ -29,7 +29,7 @@ Taiko is a based rollup on Ethereum. "Based" means Ethereum L1 validators sequen
 
 - **No sequencer**: blocks are proposed by anyone and sequenced by L1 validators
 - **EVM version**: Shanghai. Cancun opcodes (`TSTORE`, `TLOAD`, `MCOPY`, `BLOBHASH`, `BLOBBASEFEE`) are not available. See the "EVM Compatibility" section below for how to configure your tooling.
-- **Proving**: multi-proof system with SGX and ZK proof tiers. Contestable with bonding.
+- **Proving**: multi-proof system requiring multiple independent proof types (SGX and ZK) to agree on every state transition.
 
 Everything else — precompiles, account model, transaction format — is identical to Ethereum.
 

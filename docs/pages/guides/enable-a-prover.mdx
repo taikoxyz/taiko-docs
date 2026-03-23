@@ -13,9 +13,9 @@ Taiko uses a multi-tier proof system. Each tier provides a different tradeoff be
 
 Provers submit proofs for proposed blocks within a proving window. A **liveness bond** of at least 125 TAIKO (or TTKOh on testnet) is required. If the prover fails to submit a proof within the window, the bond is forfeited.
 
-### Contestation
+### Multi-Proof Requirement
 
-Any proof can be contested by submitting a higher-tier proof. If the original proof is found invalid, the original prover loses their bond and the contester receives a reward. This mechanism ensures proof integrity without requiring all blocks to use expensive ZK proofs.
+Every batch must be verified by multiple independent proof systems (e.g., sgxReth + sgxGeth) before it is accepted. This provides defense in depth — even if one proof system is compromised, the other prevents invalid state transitions.
 
 ## Prerequisites
 

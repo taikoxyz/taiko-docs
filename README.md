@@ -1,21 +1,32 @@
-[![Built with Starlight](https://astro.badg.es/v2/built-with-starlight/tiny.svg)](https://starlight.astro.build)
+# Taiko Docs
 
-# Taiko docs
+Documentation site for [Taiko](https://taiko.xyz), a based rollup on Ethereum.
 
-Welcome to Taiko docs!
+Built with [Vocs](https://vocs.dev) and optimized for AI agent consumption.
 
-## Repo architecture
+## Development
 
-Here we will list the important folders within this repo.
+```bash
+pnpm install
+pnpm dev
+```
 
-### src/content
+## Build
 
-This is where we store all of the content.
+```bash
+pnpm build
+pnpm preview
+```
 
-### src/content/config.ts
+## AI-readable formats
 
-This is where we extend the `docsSchema`.
+The site auto-generates machine-readable docs:
+
+- `/SKILL.md` — Agent reference file
+- `/llms.txt` — Page index with descriptions
+- `/llms-full.txt` — Full docs as plain text
+- `/<path>.md` — Any page as raw Markdown
 
 ## Contributing
 
-View CONTRIBUTING.md inside of the [Taiko Alethia monorepo](https://github.com/taikoxyz/taiko-mono/blob/main/CONTRIBUTING.md).
+View [CONTRIBUTING.md](https://github.com/taikoxyz/taiko-mono/blob/main/CONTRIBUTING.md) in the Taiko monorepo.
