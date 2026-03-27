@@ -24,10 +24,13 @@ pnpm preview
 
 The site auto-generates machine-readable docs:
 
-- `/SKILL.md` — Agent reference file
 - `/llms.txt` — Page index with descriptions
 - `/llms-full.txt` — Full docs as plain text
 - `/<path>.md` — Any page as raw Markdown
+
+The site also serves a SKILL.md for agents with instructions on how to interact with the chain.
+
+- `/SKILL.md` — Agent reference file
 
 ## Contributing
 

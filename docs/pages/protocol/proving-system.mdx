@@ -1,8 +1,4 @@
-# Proving System
-
-Taiko's multi-proof verification system.
-
----
+# Proving System [Taiko's multi-proof verification system.]
 
 Taiko uses a **multi-proof architecture** to verify the correctness of L2 state transitions. Rather than relying on a single proof type, the protocol requires multiple independent proof systems to agree on each batch of blocks. This design provides defense in depth -- even if one proof system is compromised, the other prevents invalid state transitions from being accepted.
 
@@ -124,6 +120,12 @@ Proposers must deposit a liveness bond when proposing a batch. The base bond is 
 
 1. **Spam prevention** -- makes it economically costly to propose invalid or empty batches at scale.
 2. **Prover incentive alignment** -- the bond is returned to the proposer once the batch is proved and verified. If the batch is never proved, the bond can be forfeited.
+
+## Current Proof Coverage
+
+Taiko currently runs with **100% proof coverage** on mainnet. In other words, every proposed batch is expected to be covered by the active proof configuration before it can progress to final verification.
+
+You can monitor the current proving status and coverage on [proofs.taiko.xyz](https://proofs.taiko.xyz/).
 
 ## Summary
 

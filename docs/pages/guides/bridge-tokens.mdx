@@ -1,6 +1,4 @@
-# Bridge Tokens
-
-Bridge ERC-20 tokens from Ethereum to Taiko programmatically.
+# Bridge Tokens [Bridge ERC-20 tokens from Ethereum to Taiko programmatically.]
 
 ## Prompt mode
 
@@ -13,13 +11,11 @@ Bridge 100 USDC from Ethereum L1 to Taiko L2.
 Approve the ERC20Vault, then call sendToken with the BridgeTransferOp struct.
 ```
 
----
-
 ## Manual mode
 
-## Contract addresses
+### Contract addresses
 
-### Mainnet (Ethereum L1 to Taiko L2)
+#### Mainnet (Ethereum L1 to Taiko L2)
 
 | Contract | Address |
 | --- | --- |
@@ -30,12 +26,15 @@ Approve the ERC20Vault, then call sendToken with the BridgeTransferOp struct.
 | L2 ERC20Vault | `0x1670000000000000000000000000000000000002` |
 | L2 SignalService | `0x1670000000000000000000000000000000000005` |
 
-### Hoodi Testnet
+#### Hoodi Testnet (Ethereum Hoodi L1 to Taiko Hoodi L2)
 
 | Contract | Address |
 | --- | --- |
 | L1 Bridge (Hoodi) | `0x6a4cf607DaC2C4784B7D934Bcb3AD7F2ED18Ed80` |
 | L1 ERC20Vault (Hoodi) | `0x0857cd029937E7a119e492434c71CB9a9Bb59aB0` |
+| L2 Bridge | `0x1670000000000000000000000000000000000001` |
+| L2 ERC20Vault | `0x1670000000000000000000000000000000000002` |
+| L2 SignalService | `0x1670000000000000000000000000000000000005` |
 
 ## Bridge ERC-20 tokens (L1 to L2)
 
@@ -146,7 +145,7 @@ After the L1 transaction confirms, the bridge message is relayed to L2. This typ
 
 ## Testnet
 
-Replace the vault address and chain ID for Hoodi:
+Replace the vault address, rpc url and chain ID for Ethereum Hoodi if bridging L1 to L2:
 
 ```bash
 cast send 0x0857cd029937E7a119e492434c71CB9a9Bb59aB0 \

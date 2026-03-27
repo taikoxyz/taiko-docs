@@ -1,0 +1,75 @@
+# Node Architecture [How Taiko nodes are structured.]
+
+Taiko nodes follow Ethereum's execution/consensus separation model, but replace Ethereum's beacon-chain consensus with Taiko-specific rollup logic.
+
+The two main components are:
+
+- [`taiko-geth`](https://github.com/taikoxyz/taiko-geth) as the execution client
+- [`taiko-client`](https://github.com/taikoxyz/taiko-mono/tree/main/packages/taiko-client) as the consensus and rollup driver
+
+## Execution Layer: taiko-geth
+
+`taiko-geth` is a minimally modified fork of `go-ethereum`.
+
+It is responsible for:
+
+- executing L2 transactions
+- maintaining chain state, receipts, and history
+- exposing standard Ethereum JSON-RPC interfaces
+- preserving Ethereum-equivalent EVM behavior
+
+For a code-level comparison, see the [Geth fork diff](https://geth.taiko.xyz).
+
+## Consensus Layer: taiko-client
+
+`taiko-client` replaces the role the beacon chain would normally play in Ethereum. It watches L1, reconstructs L2 batches, and drives `taiko-geth` through the Engine API.
+
+Its main internal roles are:
+
+| Component | Responsibility |
+| --- | --- |
+| `driver` | Tracks proposed and verified batches on L1 and feeds them into the execution engine |
+| `proposer` | Collects transactions and submits batch proposals to `TaikoInbox` |
+| `prover` | Generates and submits validity proofs for proposed batches |
+
+## Chain Synchronization
+
+At a high level, sync works like this:
+
+1. Read the latest verified L2 head from `TaikoInbox`
+2. Attempt to catch up via P2P
+3. If needed, replay verified L2 blocks through the Engine API
+4. Listen for new `BatchProposed` events on L1
+5. Reconstruct and execute the corresponding L2 blocks
+
+If a proposed tx list is invalid, the protocol still advances by constructing an empty anchor-only block rather than halting execution.
+
+## Batch Proposal and Proving
+
+### Proposal Path
+
+- the proposer reads pending transactions from `taiko-geth`
+- it packages them into batch-compatible tx lists
+- it submits `proposeBatch` transactions to `TaikoInbox`
+
+### Proving Path
+
+- the prover fetches the proposed batch data from L1
+- it waits for the corresponding execution state to exist locally
+- it generates the required proof set
+- it submits the proof bundle through `proveBatches`
+
+## APIs
+
+Taiko nodes expose standard Ethereum-style interfaces wherever possible.
+
+- **JSON-RPC API** for standard execution-layer workflows
+- **Engine API** for communication between `taiko-client` and `taiko-geth`
+
+This is what allows most Ethereum tooling to work against Taiko with minimal changes.
+
+## Related Guides
+
+- [Run a Node](/guides/run-a-node)
+- [Enable a Prover](/guides/enable-a-prover)
+- [Protocol Overview](/protocol/overview)

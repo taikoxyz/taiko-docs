@@ -2,7 +2,7 @@ import { defineConfig } from 'vocs'
 
 export default defineConfig({
   title: 'Taiko Docs',
-  titleTemplate: '%s – Taiko',
+  titleTemplate: '%s - Taiko',
   description: 'Documentation for Taiko, a based rollup on Ethereum',
 
   logoUrl: { dark: '/logo-dark.svg', light: '/logo-light.svg' },
@@ -32,6 +32,7 @@ export default defineConfig({
   // editLink will be configured once the repo is pushed to GitHub
 
   sidebar: [
+    { text: 'Home', link: '/' },
     {
       text: 'Quickstart',
       items: [
@@ -45,6 +46,7 @@ export default defineConfig({
       collapsed: true,
       items: [
         { text: 'Deploy a Contract', link: '/guides/deploy-a-contract' },
+        { text: 'Receive Tokens', link: '/guides/receive-tokens' },
         { text: 'Bridge Tokens', link: '/guides/bridge-tokens' },
         { text: 'Verify a Contract', link: '/guides/verify-a-contract' },
         { text: 'Interact with Contracts', link: '/guides/interact-with-contracts' },
@@ -69,24 +71,33 @@ export default defineConfig({
       items: [
         { text: 'Overview', link: '/protocol/overview' },
         { text: 'Based Rollups', link: '/protocol/based-rollups' },
+        { text: 'Inception Layers', link: '/protocol/inception-layers' },
+        { text: 'Pacaya Fork', link: '/protocol/pacaya-fork' },
         { text: 'Proving System', link: '/protocol/proving-system' },
         { text: 'Bridging', link: '/protocol/bridging' },
         { text: 'Economics', link: '/protocol/economics' },
         { text: 'Preconfirmations', link: '/protocol/preconfirmations' },
+        { text: 'Account Abstraction', link: '/protocol/account-abstraction' },
+        { text: 'Node Architecture', link: '/protocol/node-architecture' },
+        { text: 'Taiko Gwyneth', link: '/protocol/taiko-gwyneth' },
+        { text: 'Booster Rollups', link: '/protocol/booster-rollups' },
       ],
     },
     {
       text: 'Resources',
       items: [
         { text: 'FAQ', link: '/resources/faq' },
+        { text: 'Getting Support', link: '/resources/getting-support' },
         { text: 'Developer Tools', link: '/resources/developer-tools' },
         { text: 'Terminology', link: '/resources/terminology' },
+        { text: 'Learning Resources', link: '/resources/learning-resources' },
+        { text: 'Contributing', link: '/resources/contributing' },
       ],
     },
   ],
 
   topNav: [
-    { text: 'Docs', link: '/quickstart/connect', match: '/' },
+    { text: 'Docs', link: '/', match: '/' },
     { text: 'GitHub', link: 'https://github.com/taikoxyz/taiko-mono' },
     { text: 'Bridge', link: 'https://bridge.taiko.xyz' },
   ],

@@ -1,6 +1,4 @@
-# Interact with Contracts
-
-Read on-chain state and send transactions on Taiko using `cast` and `viem`.
+# Interact with Contracts [Read on-chain state and send transactions on Taiko using cli tools.]
 
 ## Prompt mode
 
@@ -13,11 +11,9 @@ Read the ETH and USDC balance of 0xYOUR_ADDRESS on Taiko mainnet.
 Use cast or viem with RPC https://rpc.mainnet.taiko.xyz.
 ```
 
----
-
 ## Manual mode
 
-## RPC endpoints
+### RPC endpoints
 
 :::code-group
 
@@ -31,9 +27,9 @@ export RPC_URL=https://rpc.hoodi.taiko.xyz
 
 :::
 
-## Read operations
+### Read operations
 
-### Check ETH balance
+#### Check ETH balance
 
 :::code-group
 
@@ -56,7 +52,7 @@ console.log(formatEther(balance));
 
 :::
 
-### Check ERC-20 balance
+#### Check ERC-20 balance
 
 :::code-group
 
@@ -88,14 +84,14 @@ console.log(balance);
 
 :::
 
-### Read storage slots
+#### Read storage slots
 
 ```bash
 # Read slot 0 of a contract
 cast storage $CONTRACT_ADDRESS 0 --rpc-url $RPC_URL
 ```
 
-### Call arbitrary view functions
+#### Call arbitrary view functions
 
 :::code-group
 
@@ -115,9 +111,9 @@ const result = await client.readContract({
 
 :::
 
-## Write operations
+### Write operations
 
-### Send ETH
+#### Send ETH
 
 :::code-group
 
@@ -148,7 +144,7 @@ const hash = await wallet.sendTransaction({
 
 :::
 
-### ERC-20 transfer
+#### ERC-20 transfer
 
 :::code-group
 
@@ -183,7 +179,7 @@ const hash = await wallet.writeContract({
 
 :::
 
-### ERC-20 approve
+#### ERC-20 approve
 
 :::code-group
 
@@ -207,9 +203,9 @@ const hash = await wallet.writeContract({
 
 :::
 
-## Common patterns
+### Common patterns
 
-### Check token allowance
+#### Check token allowance
 
 ```bash
 cast call 0x07d83526730c7438048D55A4fc0b850e2aaB6f0b \
@@ -218,13 +214,13 @@ cast call 0x07d83526730c7438048D55A4fc0b850e2aaB6f0b \
   --rpc-url $RPC_URL
 ```
 
-### Get transaction receipt
+#### Get transaction receipt
 
 ```bash
 cast receipt $TX_HASH --rpc-url $RPC_URL
 ```
 
-### Decode calldata
+#### Decode calldata
 
 ```bash
 cast 4byte-decode $CALLDATA

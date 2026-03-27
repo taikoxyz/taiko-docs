@@ -16,14 +16,14 @@ Taiko is a based rollup on Ethereum. "Based" means Ethereum L1 validators sequen
 
 ## Quick Reference
 
-|           | Mainnet (Alethia)               | Testnet (Hoodi)               |
-| --------- | ------------------------------- | ----------------------------- |
-| Chain ID  | `167000`                        | `167013`                      |
-| RPC       | `https://rpc.mainnet.taiko.xyz` | `https://rpc.hoodi.taiko.xyz` |
-| Explorer  | `https://taikoscan.io`          | `https://hoodi.taikoscan.io`  |
-| L1        | Ethereum (1)                    | Ethereum Hoodi (560048)       |
-| Currency  | ETH                             | ETH                           |
-| Bridge UI | `https://bridge.taiko.xyz`      | —                             |
+|           | Mainnet (Alethia)               | Testnet (Hoodi)                 |
+| --------- | ------------------------------- | ------------------------------- |
+| Chain ID  | `167000`                        | `167013`                        |
+| RPC       | `https://rpc.mainnet.taiko.xyz` | `https://rpc.hoodi.taiko.xyz`   |
+| Explorer  | `https://taikoscan.io`          | `https://hoodi.taikoscan.io`    |
+| L1        | Ethereum (1)                    | Ethereum Hoodi (560048)         |
+| Currency  | ETH                             | ETH                             |
+| Bridge UI | `https://bridge.taiko.xyz`      | `https://bridge.hoodi.taiko.xyz |
 
 ## How Taiko Differs from Ethereum
 
@@ -119,6 +119,18 @@ L2 contracts are predeployed at deterministic `0x167000...` addresses:
 | SignalService | `0x4c70b7F5E153D497faFa0476575903F9299ed811` |
 | ERC20Vault    | `0x0857cd029937E7a119e492434c71CB9a9Bb59aB0` |
 
+## Contract Addresses — Testnet L2 (Taiko Hoodi)
+
+L2 contracts are predeployed at deterministic `0x167000...` addresses:
+
+| Contract             | Address                                      |
+| -------------------- | -------------------------------------------- |
+| Bridge               | `0x1670000000000000000000000000000000000001` |
+| ERC20Vault           | `0x1670000000000000000000000000000000000002` |
+| SignalService        | `0x1670000000000000000000000000000000000005` |
+| TaikoToken (bridged) | `0x557f5b2b222F1F59F94682dF01D35Dd11f37939a` |
+| WETH                 | `0x3B39685B5495359c892DDD1057B5712F49976835` |
+
 ## Common Tasks
 
 ### Deploy a contract
@@ -167,6 +179,16 @@ cast call $CONTRACT "balanceOf(address)(uint256)" $ADDRESS \
 }
 ```
 
+```json
+{
+  "chainId": "0x28C75",
+  "chainName": "Taiko Testnet",
+  "nativeCurrency": { "name": "Ether", "symbol": "ETH", "decimals": 18 },
+  "rpcUrls": ["https://rpc.hoodi.taiko.xyz"],
+  "blockExplorerUrls": ["https://hoodi.taikoscan.io"]
+}
+```
+
 Hex chain ID: `0x28C58` (167000 decimal). For Hoodi testnet: `0x28C75` (167013 decimal).
 
 ### Bridge tokens (programmatic)
@@ -177,7 +199,7 @@ Bridging uses the Bridge contract on L1. Send a message with ETH value to the L1
 2. For ERC20 tokens, approve the ERC20Vault (`0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab`) then call `sendToken()`
 3. The bridge relayer processes the message — tokens appear on L2 after L1 finalization
 
-For the bridge UI: `https://bridge.taiko.xyz`
+For the bridge UI: `https://bridge.taiko.xyz` or `https://bridge.hoodi.taiko.xyz`.
 
 ## Rules for Agents
 

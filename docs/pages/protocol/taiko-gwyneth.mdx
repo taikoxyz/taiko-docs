@@ -1,0 +1,51 @@
+# Taiko Gwyneth [Taiko's longer-term horizontal scaling architecture.]
+
+Taiko Gwyneth extends the based-rollup model into a network of Ethereum-equivalent rollups that can work together as a more unified execution environment.
+
+The goal is not only to add more chains, but to reduce the fragmentation that usually comes with a multi-rollup world.
+
+## What Gwyneth Adds
+
+Taiko Gwyneth combines:
+
+- based sequencing
+- booster-rollup ideas
+- real-time proving
+- preconfirmations
+
+The result is a model for **horizontal Ethereum scaling**: more capacity by adding more rollups, rather than only making one rollup bigger.
+
+## Why It Matters
+
+| Property | Why it matters |
+| --- | --- |
+| **Ethereum equivalence** | Existing dapps and tooling remain usable. |
+| **Based sequencing** | Ordering still inherits Ethereum's decentralization and censorship resistance. |
+| **Parallel scale** | New rollups can add execution and storage capacity without replacing old ones. |
+| **Better UX** | The design aims to reduce liquidity and application fragmentation across chains. |
+
+## Synchronous Composability
+
+One of Gwyneth's defining goals is **synchronous composability** across rollups.
+
+In practical terms, that means contracts should be able to read and coordinate across chains more like a unified system than a set of isolated L2s.
+
+## Booster Functionality
+
+Gwyneth adopts booster-rollup concepts so that Ethereum L1 state can be accessed efficiently from participating L2s. This reduces the need to redeploy every application independently on every chain.
+
+See [Booster Rollups](/protocol/booster-rollups) for the specific concept.
+
+## Real-Time Proving
+
+Gwyneth assumes a proving stack that can support fast execution with multiple proof types, including trusted hardware systems today and stronger cryptographic proof systems as they mature.
+
+## Preconfirmations
+
+Like Taiko Alethia, Gwyneth is designed to benefit from based preconfirmations so users can get much faster confirmation UX than raw L1 settlement latency would allow.
+
+## Related Reading
+
+- [Booster Rollups](/protocol/booster-rollups)
+- [Inception Layers](/protocol/inception-layers)
+- [Preconfirmations](/protocol/preconfirmations)

@@ -1,0 +1,57 @@
+# Inception Layers [How Taiko can scale through parallel and recursive rollup layers.]
+
+A single rollup can only scale so far before throughput, state growth, and interoperability pressure push the ecosystem toward many chains. Taiko's answer is **inception layers**: multiple Taiko rollups operating side by side, and even Taiko rollups deployed on top of other Taiko rollups.
+
+## What Are Inception Layers?
+
+Inception layers describe a recursive model where the same Taiko architecture can run as:
+
+- multiple parallel L2s on Ethereum
+- L3s on top of Taiko L2s
+- deeper stacks of Ethereum-equivalent rollups as needed
+
+Because Taiko is Ethereum-equivalent, the relationship between `L3 -> L2` can closely resemble the relationship between `L2 -> L1`.
+
+## Why They Matter
+
+### Horizontal Scale
+
+Multiple Taiko rollups can process transactions in parallel instead of forcing all activity through one chain.
+
+### Vertical Scale
+
+If an application or ecosystem needs a dedicated environment, it can deploy a new layer on top of an existing Taiko chain rather than competing for the same execution space.
+
+### Reuse of Tooling
+
+Developers can keep the same EVM assumptions, contracts, and tooling across layers.
+
+## Benefits
+
+| Benefit | Why it matters |
+| --- | --- |
+| **Ethereum equivalence across layers** | Contracts and tooling remain reusable across L1, L2, and L3 environments. |
+| **Built-in interoperability** | Rollups can communicate with trust-minimized proofs rather than bespoke bridges. |
+| **Less fragmentation pressure** | Shared architecture makes it easier to move messages and liquidity across layers. |
+
+## Architecture
+
+At a high level:
+
+- Ethereum L1 remains the base settlement and data-availability layer
+- multiple Taiko L2s can operate in parallel
+- Taiko L3s can be deployed on top of those L2s
+
+This creates a multi-layer system where rollups scale both **horizontally** and **vertically**.
+
+## Message Passing Between Layers
+
+Inception layers depend on efficient cross-layer communication.
+
+Taiko's model relies on:
+
+- Merkle-proof-based state verification
+- shared Ethereum-equivalent execution assumptions
+- cross-layer message passing mechanisms built on the same protocol primitives used for bridging
+
+See [Bridging](/protocol/bridging) for the lower-level message flow.

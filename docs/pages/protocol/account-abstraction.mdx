@@ -1,0 +1,35 @@
+# Account Abstraction [ERC-4337 support on Taiko.]
+
+Taiko supports **ERC-4337 account abstraction**, allowing developers to build smart-account experiences such as gas sponsorship, batched actions, and custom account logic without changing the base protocol.
+
+## ERC-4337 on Taiko
+
+Taiko uses the standard **EntryPoint**-based model defined by ERC-4337. This means applications can use the same account abstraction patterns and tooling that they use on Ethereum.
+
+The singleton EntryPoint contract is deployed on Taiko mainnet at:
+
+`0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108`
+
+Explorer:
+[taikoscan.io/address/0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108](https://taikoscan.io/address/0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108)
+
+## What This Enables
+
+- Smart contract wallets
+- Gas abstraction and sponsorship
+- Batched user operations
+- Custom authentication and recovery flows
+
+Because Taiko is Ethereum-equivalent, most ERC-4337 tooling can be reused directly.
+
+## Build Guidance
+
+- Confirm the chain and EntryPoint address in your bundler/paymaster configuration
+- Use the same wallet/account abstraction libraries you would use on Ethereum
+- Verify any gas assumptions against Taiko's current network conditions
+
+## Learn More
+
+- [ERC-4337 documentation](https://docs.erc4337.io)
+- [Contract Addresses](/network/contract-addresses)
+- [Developer Tools](/resources/developer-tools)

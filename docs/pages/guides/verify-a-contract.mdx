@@ -1,6 +1,4 @@
-# Verify a Contract
-
-Verify deployed contracts on Taikoscan so anyone can read and audit the source code.
+# Verify a Contract [Verify deployed contracts on Taikoscan so anyone can read and audit the source code.]
 
 ## Prompt mode
 
@@ -13,22 +11,20 @@ Verify my contract at 0xYOUR_ADDRESS on Taiko mainnet.
 Use FOUNDRY_PROFILE=taiko and the Taikoscan API.
 ```
 
----
-
 ## Manual mode
 
 :::warning
 The **#1 cause of verification failure** is an EVM version mismatch. Taiko runs **Shanghai**. If you compiled with Cancun (the Solidity 0.8.24+ default), the bytecode will not match and verification will fail. Always compile with `evm_version = "shanghai"`.
 :::
 
-## Verification endpoints
+### Verification endpoints
 
 | Network | API URL |
 | --- | --- |
 | Mainnet | `https://api.taikoscan.io/api` |
 | Hoodi Testnet | `https://api-hoodi.taikoscan.io/api` |
 
-## Verify an already-deployed contract
+### Verify an already-deployed contract
 
 Use `forge verify-contract` to verify a contract after deployment.
 
@@ -54,7 +50,7 @@ FOUNDRY_PROFILE=taiko forge verify-contract $CONTRACT_ADDRESS \
 
 :::
 
-## Verify at deploy time
+### Verify at deploy time
 
 Add `--verify` to `forge create` or `forge script` to verify in a single step:
 
@@ -68,7 +64,7 @@ FOUNDRY_PROFILE=taiko forge create src/MyContract.sol:MyContract \
   --etherscan-api-key $TAIKOSCAN_API_KEY
 ```
 
-## Constructor arguments
+### Constructor arguments
 
 If your contract has constructor arguments, encode them with `cast abi-encode` and pass via `--constructor-args`:
 
@@ -98,7 +94,7 @@ FOUNDRY_PROFILE=taiko forge verify-contract $CONTRACT_ADDRESS \
   --constructor-args "MyToken" "MTK" 18
 ```
 
-## Check verification status
+### Check verification status
 
 ```bash
 forge verify-check $GUID \
@@ -108,7 +104,7 @@ forge verify-check $GUID \
   --chain-id 167000
 ```
 
-## Troubleshooting
+### Troubleshooting
 
 | Problem | Cause | Fix |
 | --- | --- | --- |

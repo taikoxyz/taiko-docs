@@ -1,0 +1,53 @@
+# Pacaya Fork [The protocol changes introduced by Taiko's Pacaya upgrade.]
+
+Taiko Alethia transitioned to the **Pacaya fork** on **May 21, 2025**. Pacaya replaced the earlier contestable rollup design with a batch-based protocol and mandatory multi-proof verification.
+
+## Batch-Based Proposing
+
+Before Pacaya, proposing every block to Ethereum L1 created a strong bias toward larger, less frequent blocks. That was incompatible with fast user-facing confirmations.
+
+Pacaya changed the protocol so that:
+
+- blocks are proposed in **batches**
+- a batch can contain zero, one, or many blocks
+- all blocks in a batch share metadata and a common data source
+
+This makes smaller, more frequent blocks economically viable.
+
+## Multi-Proof Replacing Contestion
+
+Pacaya removed proof contestation and replaced it with **multi-proving**.
+
+Instead of allowing proofs to be challenged after submission, the protocol now requires multiple proof systems to agree before a batch can advance. In practice, this means:
+
+- `TaikoInbox` manages batch proposal, proof submission, and verification
+- `ComposeVerifier` coordinates the active verifier set
+- independent proof systems must all satisfy the protocol's sufficiency rule
+
+See [Proving System](/protocol/proving-system) for the full flow.
+
+## Shorter Protocol Windows
+
+Pacaya shortened the main timing parameters:
+
+| Parameter | Value |
+| --- | --- |
+| Proving window | 2 hours |
+| Cooldown window | 2 hours |
+
+These shorter windows make the protocol more responsive and move Taiko closer to faster withdrawals and better user experience.
+
+## Key Contract Changes
+
+Pacaya introduced or elevated several contracts:
+
+- `TaikoInbox` replaced the earlier `TaikoL1` design
+- `TaikoAnchor` replaced the earlier `TaikoL2` design
+- `ComposeVerifier` became the multi-proof coordination layer
+- `ForcedInclusionStore` preserves censorship resistance during the staged preconfirmation rollout
+
+## Relationship to Preconfirmations
+
+Pacaya is the foundation for Taiko's preconfirmation architecture. Batch-based proposing makes frequent blocks practical, and multi-proof verification keeps the security model coherent as the protocol moves toward faster user confirmations.
+
+See [Preconfirmations](/protocol/preconfirmations) for the rollout model.
