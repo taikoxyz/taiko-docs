@@ -77,6 +77,13 @@ Every page is available as raw Markdown by appending `.md` to the URL:
 | Full docs (single file) | [`/llms-full.txt`](/llms-full.txt) |
 | Any page as Markdown | Append `.md` to any page URL |
 
+
+### Registering Agents on Taiko
+
+Taiko supports ERC-8004 on both Taiko Alethia and Taiko Hoodi, contract addresses for IdentityRegistry and ReputationRegistry can be found [here](/network/contract-addresses#key-tokens--utilities)
+
+Other agent-friendly tooling includes [tack](https://tack.taiko.xyz/), an agent-native IPFS pinning/retrieval service that implements x402 payments.
+
 ## Best practices
 
 - **Always use `FOUNDRY_PROFILE=taiko`.** This ensures Shanghai EVM compilation. Forgetting this is the most common deployment failure.
