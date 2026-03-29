@@ -1,0 +1,6 @@
+[files]
+extend-exclude = ["CHANGELOG.md"]
+
+[default.extend-words]
+# "mis-encoded" is valid (mis- prefix)
+mis = "mis"

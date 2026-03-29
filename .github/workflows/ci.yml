@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: ${{ github.event.pull_request.draft == false && !startsWith(github.head_ref, 'dependabot') }}
+    runs-on: [arc-runner-set]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm run build
+
+  typo-check:
+    if: ${{ github.event.pull_request.draft == false && !startsWith(github.head_ref, 'dependabot') }}
+    runs-on: [arc-runner-set]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install wget
+        run: |
+          if ! command -v wget &> /dev/null; then
+            sudo apt-get update && sudo apt-get install -y wget
+          fi
+
+      - name: Check for typos
+        uses: crate-ci/typos@v1.44.0
+        with:
+          config: ${{ github.workspace }}/_typos.toml
