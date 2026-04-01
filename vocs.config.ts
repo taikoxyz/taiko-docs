@@ -37,6 +37,7 @@ export default defineConfig({
       text: 'Quickstart',
       items: [
         { text: 'Agent Quickstart', link: '/quickstart/agent' },
+        { text: 'Tack: IPFS for Agents', link: '/quickstart/tack' },
         { text: 'Connect to Taiko', link: '/quickstart/connect' },
         { text: 'Deploy Your First Contract', link: '/quickstart/deploy' },
       ],
@@ -98,6 +99,7 @@ export default defineConfig({
 
   topNav: [
     { text: 'Docs', link: 'https://github.com/taikoxyz/taiko-docs' },
+    { text: 'Taiko', link: 'https://taiko.xyz' },
     { text: 'GitHub', link: 'https://github.com/taikoxyz/taiko-mono' },
     { text: 'Bridge', link: 'https://bridge.taiko.xyz' },
   ],
