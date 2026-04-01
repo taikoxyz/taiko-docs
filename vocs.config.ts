@@ -98,8 +98,12 @@ export default defineConfig({
   ],
 
   topNav: [
+<<<<<<< claude/slack-session-T4gt1
     { text: 'Docs', link: '/', match: '/' },
     { text: 'Taiko', link: 'https://taiko.xyz' },
+=======
+    { text: 'Docs', link: 'https://github.com/taikoxyz/taiko-docs' },
+>>>>>>> main
     { text: 'GitHub', link: 'https://github.com/taikoxyz/taiko-mono' },
     { text: 'Bridge', link: 'https://bridge.taiko.xyz' },
   ],
