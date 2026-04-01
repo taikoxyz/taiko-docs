@@ -71,16 +71,14 @@ export default defineConfig({
       items: [
         { text: 'Overview', link: '/protocol/overview' },
         { text: 'Based Rollups', link: '/protocol/based-rollups' },
-        { text: 'Inception Layers', link: '/protocol/inception-layers' },
         { text: 'Pacaya Fork', link: '/protocol/pacaya-fork' },
+        { text: 'Shasta Fork', link: '/protocol/shasta-fork' },
         { text: 'Proving System', link: '/protocol/proving-system' },
         { text: 'Bridging', link: '/protocol/bridging' },
         { text: 'Economics', link: '/protocol/economics' },
         { text: 'Preconfirmations', link: '/protocol/preconfirmations' },
         { text: 'Account Abstraction', link: '/protocol/account-abstraction' },
         { text: 'Node Architecture', link: '/protocol/node-architecture' },
-        { text: 'Taiko Gwyneth', link: '/protocol/taiko-gwyneth' },
-        { text: 'Booster Rollups', link: '/protocol/booster-rollups' },
       ],
     },
     {

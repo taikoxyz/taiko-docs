@@ -386,7 +386,7 @@
 
 ### Features
 
-* **docs-site:** structure docs and add Gwyneth docs ([#18894](https://github.com/taikoxyz/taiko-mono/issues/18894)) ([8a542cd](https://github.com/taikoxyz/taiko-mono/commit/8a542cdf797ceeeef8c159713885499e0172e363))
+* **docs-site:** structure protocol docs ([#18894](https://github.com/taikoxyz/taiko-mono/issues/18894)) ([8a542cd](https://github.com/taikoxyz/taiko-mono/commit/8a542cdf797ceeeef8c159713885499e0172e363))
 
 ## [1.23.3](https://github.com/taikoxyz/taiko-mono/compare/docs-site-v1.23.2...docs-site-v1.23.3) (2025-02-18)
 
