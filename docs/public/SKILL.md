@@ -181,7 +181,7 @@ cast call $CONTRACT "balanceOf(address)(uint256)" $ADDRESS \
 
 ```json
 {
-  "chainId": "0x28C75",
+  "chainId": "0x28C65",
   "chainName": "Taiko Testnet",
   "nativeCurrency": { "name": "Ether", "symbol": "ETH", "decimals": 18 },
   "rpcUrls": ["https://rpc.hoodi.taiko.xyz"],
@@ -189,7 +189,7 @@ cast call $CONTRACT "balanceOf(address)(uint256)" $ADDRESS \
 }
 ```
 
-Hex chain ID: `0x28C58` (167000 decimal). For Hoodi testnet: `0x28C75` (167013 decimal).
+Hex chain ID: `0x28C58` (167000 decimal). For Hoodi testnet: `0x28C65` (167013 decimal).
 
 ### Bridge tokens (programmatic)
 

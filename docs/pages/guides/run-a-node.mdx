@@ -2,28 +2,31 @@
 
 ## Architecture
 
-Taiko nodes follow Ethereum's execution/consensus separation model, but replace the beacon-chain consensus with Taiko-specific rollup logic. The two main components are:
+Taiko nodes still follow Ethereum's execution/consensus split, but in the Shasta architecture the consensus side is driven by Taiko's L1 inbox, proposal derivation rules, and L2 anchoring logic instead of an Ethereum beacon chain. The two main components are:
 
-- [`taiko-geth`](https://github.com/taikoxyz/taiko-geth) — a minimally modified fork of `go-ethereum` that serves as the **execution client**. It executes L2 transactions, maintains chain state, and exposes standard Ethereum JSON-RPC interfaces.
-- [`taiko-client`](https://github.com/taikoxyz/taiko-mono/tree/main/packages/taiko-client) — the **consensus and rollup driver** that replaces the beacon chain. It watches L1, reconstructs L2 batches, and drives `taiko-geth` through the Engine API.
+- [`taiko-geth`](https://github.com/taikoxyz/taiko-geth) — a minimally modified fork of `go-ethereum` that serves as the **execution client**. It executes L2 blocks, maintains chain state, and exposes standard Ethereum JSON-RPC interfaces.
+- [`taiko-client`](https://github.com/taikoxyz/taiko-mono/tree/main/packages/taiko-client) — the **consensus and rollup driver**. It watches the Shasta inbox on L1, derives L2 blocks from proposal data, tracks finalization, and drives `taiko-geth` through the Engine API.
+
+In Shasta, the protocol no longer upgrades the old Pacaya inbox in place. It uses a separate **Shasta Inbox** on L1 for proposing, proving, forced inclusion, and finalization, while the L2 side uses the **TaikoAnchor** plus fork-router contracts to keep pre-fork and post-fork behavior compatible during the transition.
 
 ### taiko-client roles
 
 | Component | Responsibility |
 | --- | --- |
-| `driver` | Tracks proposed and verified batches on L1 and feeds them into the execution engine |
-| `proposer` | Collects transactions and submits batch proposals to `TaikoInbox` |
-| `prover` | Generates and submits validity proofs for proposed batches |
+| `driver` | Tracks L1 proposals and finalized proposal ranges, derives L2 blocks, and feeds them into the execution engine |
+| `proposer` | Collects transactions and submits Shasta proposals to the L1 inbox, including lookahead data when preconfirmations are enabled |
+| `prover` | Generates and submits validity proofs that finalize consecutive proposal ranges |
 
 ### Chain synchronization
 
 At a high level, sync works like this:
 
-1. Read the latest verified L2 head from `TaikoInbox`
-2. Attempt to catch up via P2P
-3. If needed, replay verified L2 blocks through the Engine API
-4. Listen for new `BatchProposed` events on L1
-5. Reconstruct and execute the corresponding L2 blocks
+1. Read the latest finalized proposal state from the L1 inbox
+2. Attempt to catch up to the network tip via P2P preconfirmation peers
+3. If needed, replay finalized L2 blocks through the Engine API
+4. Listen for new `Proposed` events on L1
+5. Reconstruct and execute the corresponding L2 blocks from proposal data and forced inclusions
+6. Keep the L2 head anchored to the L1 checkpoints exposed through the Shasta anchor path
 
 If a proposed tx list is invalid, the protocol still advances by constructing an empty anchor-only block rather than halting execution.
 
@@ -175,10 +178,6 @@ curl http://localhost:8547 \
 
 Expected response for mainnet: `"result":"0x28c58"` (chain ID 167000).
 
-:::info
-The `--networkid` flag used by taiko-geth (`167009`) is the P2P network identifier, not the chain ID. The `eth_chainId` RPC returns the chain ID from genesis, which is `167000`.
-:::
-
 Check sync progress:
 
 ```bash
@@ -260,12 +259,13 @@ Copy `jwt.txt` into both the `taiko-geth` and `taiko-client` directories.
 ```bash [Mainnet]
 ./build/bin/geth \
   --taiko \
-  --networkid 167009 \
+  --networkid 167000 \
   --gcmode archive \
   --datadir ./data/taiko-geth \
   --metrics \
   --metrics.expensive \
   --metrics.addr "0.0.0.0" \
+  --bootnodes enode://266a8e3b5e44201eca9c368d58aa59a7750295397e77d5b32aea2644f9962cbc4e1cb0543aab0480995a209408174413f65e5ce253d60bb83d22d3b8ab12eb89@34.142.239.251:30303,enode://264a7fc4bd1ee16cfc6eb420c643407bfc61b9c9534c5a39ba6e68c8759beda2fbeccefee8677385e3d99691eeb218da4bce7f5207cf38594ac0f6a53c128b9b@35.247.159.156:30303,enode://2d4e5b7ec0c57f9def6ebe72f9bd1f65c33c87b7dc38875bbb147c10e8ec9a8cd157558b695f9a02ac6ad789f300fab4f1f19d41273956491372e96880a3459f@34.126.90.255:30303,enode://57f4b29cd8b59dc8db74be51eedc6425df2a6265fad680c843be113232bbe632933541678783c2a5759d65eac2e2241c45a34e1c36254bccfe7f72e52707e561@104.197.107.1:30303,enode://87a68eef46cc1fe862becef1185ac969dfbcc050d9304f6be21599bfdcb45a0eb9235d3742776bc4528ac3ab631eba6816e9b47f6ee7a78cc5fcaeb10cd32574@35.232.246.122:30303 \
   --authrpc.addr "0.0.0.0" \
   --authrpc.port 28551 \
   --authrpc.vhosts "*" \
@@ -333,15 +333,30 @@ export L1_BEACON_URL=<your-l1-beacon-http-endpoint>
 
 ```bash [Mainnet]
 ./bin/taiko-client driver \
-  --l1.ws ${L1_WS} \
+  --l1.ws "${L1_ENDPOINT_WS}" \
   --l2.ws ws://localhost:28546 \
-  --l1.beacon ${L1_BEACON_URL} \
+  --l1.beacon "${L1_BEACON_HTTP}" \
   --l2.auth http://localhost:28551 \
-  --taikoInbox 0x06a9Ab27c7e2255df1815E6CC0168d7755Feb19a \
+  --pacayaInbox 0x06a9Ab27c7e2255df1815E6CC0168d7755Feb19a \
+  --shastaInbox 0x6f21C543a4aF5189eBdb0723827577e1EF57ef1f \
   --taikoAnchor 0x1670000000000000000000000000000000010001 \
+  --shasta.time 1775135700 \
+  --preconfirmation.whitelist 0xFD019460881e6EeC632258222393d5821029b2ac \
   --jwtSecret ./jwt.txt \
   --p2p.sync \
   --p2p.checkPointSyncUrl https://rpc.mainnet.taiko.xyz
+  --p2p.bootnodes enode://c263741b17759f3850d24d67d6c3cbc307c73e17d80c6b12a63a4792a10529d1125d00ecf7ef4c9b0dc51d28b94dfc1b8798fb524f61a1f93946748649f73b23@34.142.239.251:4001?discport=30304,enode://2f37c3affd83274b262fa2a259d32d41510dd5a48d6e916696efe7f1598cb3f905305f5989e7b6607aab50697fb2e52cb4b6904116ed67cc5fcea1e6d66ccaba@35.247.159.156:4001?discport=30304,enode://dd83dedeff622ecfca0c5edf320266506c811539a553ddd91589cdfcc9bbd74d0d620f251d8d5e1180f19a446abbdd8b6b5301e9aa6cbad35cfd9716f80f2416@34.126.90.255:4001?discport=30304,enode://0e917d0fd54e25cd9815aa552550c938dfccafb1b09e613d1b5f344236dc2a93cdac9508a9e570a4e1a315ca7762de51f41c4a90361519d972fdd6715bb3f4f3@51.210.195.167:4001?discport=30303 \
+  --p2p.listen.ip 0.0.0.0 \
+  --p2p.advertise.ip ${PUBLIC_IP} \
+  --p2p.listen.tcp 4001 \
+  --p2p.advertise.tcp 4001 \
+  --p2p.listen.udp 30303 \
+  --p2p.advertise.udp 30303 \
+  --p2p.peerstore.path /node-keys/peerstore \
+  --p2p.discovery.path /node-keys/discv5 \
+  --preconfirmation.serverPort 9871 \
+  --p2p.useragent taiko \
+  --p2p.priv.raw "${WALLET_PRIV_KEY}"
 ```
 
 ```bash [Hoodi Testnet]
@@ -350,8 +365,10 @@ export L1_BEACON_URL=<your-l1-beacon-http-endpoint>
   --l2.ws ws://localhost:28546 \
   --l1.beacon ${L1_BEACON_URL} \
   --l2.auth http://localhost:28551 \
-  --taikoInbox 0xf6eA848c7d7aC83de84db45Ae28EAbf377fe0eF9 \
+  --pacayaInbox 0xf6eA848c7d7aC83de84db45Ae28EAbf377fe0eF9 \
+  --shastaInbox 0xeF4bB7A442Bd68150A3aa61A6a097B86b91700BF \
   --taikoAnchor 0x1670130000000000000000000000000000010001 \
+  --shasta.time 1770296400 \
   --preconfirmation.whitelist 0x8B969Fcf37122bC5eCB4E0e5Ad65CEEC3f1393ba \
   --preconfirmation.serverPort 9871 \
   --jwtSecret ./jwt.txt \
