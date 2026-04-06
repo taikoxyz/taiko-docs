@@ -26,7 +26,7 @@ A mechanism ensuring that transactions cannot be censored by proposers. If a pro
 
 ### Liveness bond
 
-TAIKO tokens staked by a prover when they commit to proving a block. If the prover fails to submit a valid proof within the proving window, the bond is forfeited and another prover can step in. This ensures provers remain active and accountable.
+TAIKO tokens deposited by a proposer when proposing a batch. The bond is returned after the batch is proved and verified. If the batch is not proved within the proving window, the bond is forfeited. This ensures proposed batches are followed through with timely proofs.
 
 ### Preconfirmation
 
@@ -42,7 +42,7 @@ An entity that submits L2 block data to the `TaikoInbox` contract on L1. In Taik
 
 ### Prover
 
-An entity that generates validity proofs for proposed L2 blocks. Provers stake a liveness bond and must submit a proof within the proving window. Multiple proof types (SGX, ZK) are supported. See [Proving System](/protocol/proving-system).
+An entity that generates validity proofs for proposed L2 blocks. Provers must submit a proof within the proving window. Multiple proof types (SGX, ZK) are supported. See [Proving System](/protocol/proving-system).
 
 ### SGX proof
 
