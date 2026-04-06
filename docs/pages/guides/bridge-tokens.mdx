@@ -36,6 +36,18 @@ Approve the ERC20Vault, then call sendToken with the BridgeTransferOp struct.
 | L2 ERC20Vault | `0x1670130000000000000000000000000000000002` |
 | L2 SignalService | `0x1670130000000000000000000000000000000005` |
 
+## Testnet Setup
+
+Before bridging on testnet, you need Hoodi ETH and (optionally) test tokens.
+
+1. **Get Hoodi ETH.** Fund your L1 wallet with Hoodi ETH from a public faucet (search for "Hoodi faucet").
+2. **Get test ERC-20 tokens.** The common test token is [HORSE](https://hoodi.etherscan.io/token/0x0a5db5597adc81c871ebd89e81cfa07bdc8fafe3). Open the [Hoodi bridge](https://bridge.hoodi.taiko.xyz), use the faucet option in the sidebar, and mint HORSE on Ethereum Hoodi.
+3. **Bridge to Taiko Hoodi.** In the [Hoodi bridge](https://bridge.hoodi.taiko.xyz), connect your wallet, select the asset, and submit the bridge transaction. For a programmatic approach, see the [Testnet](#testnet) section below.
+
+:::note
+Taiko **mainnet** does not have a faucet flow. The above steps are for **testnet usage only**.
+:::
+
 ## Bridge ERC-20 tokens (L1 to L2)
 
 ::::steps

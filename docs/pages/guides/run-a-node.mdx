@@ -1,5 +1,41 @@
 # Run a Node [Run a Taiko node using Docker or from source.]
 
+## Architecture
+
+Taiko nodes follow Ethereum's execution/consensus separation model, but replace the beacon-chain consensus with Taiko-specific rollup logic. The two main components are:
+
+- [`taiko-geth`](https://github.com/taikoxyz/taiko-geth) — a minimally modified fork of `go-ethereum` that serves as the **execution client**. It executes L2 transactions, maintains chain state, and exposes standard Ethereum JSON-RPC interfaces.
+- [`taiko-client`](https://github.com/taikoxyz/taiko-mono/tree/main/packages/taiko-client) — the **consensus and rollup driver** that replaces the beacon chain. It watches L1, reconstructs L2 batches, and drives `taiko-geth` through the Engine API.
+
+### taiko-client roles
+
+| Component | Responsibility |
+| --- | --- |
+| `driver` | Tracks proposed and verified batches on L1 and feeds them into the execution engine |
+| `proposer` | Collects transactions and submits batch proposals to `TaikoInbox` |
+| `prover` | Generates and submits validity proofs for proposed batches |
+
+### Chain synchronization
+
+At a high level, sync works like this:
+
+1. Read the latest verified L2 head from `TaikoInbox`
+2. Attempt to catch up via P2P
+3. If needed, replay verified L2 blocks through the Engine API
+4. Listen for new `BatchProposed` events on L1
+5. Reconstruct and execute the corresponding L2 blocks
+
+If a proposed tx list is invalid, the protocol still advances by constructing an empty anchor-only block rather than halting execution.
+
+### APIs
+
+Taiko nodes expose standard Ethereum-style interfaces:
+
+- **JSON-RPC API** for standard execution-layer workflows
+- **Engine API** for communication between `taiko-client` and `taiko-geth`
+
+This is what allows most Ethereum tooling to work against Taiko with minimal changes.
+
 ## Prerequisites
 
 ### Hardware

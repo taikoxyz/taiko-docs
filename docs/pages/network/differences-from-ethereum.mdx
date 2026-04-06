@@ -82,6 +82,16 @@ Taiko uses a **multi-proof system** requiring multiple independent proof types t
 - L1 data costs apply for calldata posted to Ethereum.
 - No L1 blob fees (since `BLOBBASEFEE` is unavailable on Taiko L2 itself).
 
+## Account Abstraction (ERC-4337)
+
+Taiko supports **ERC-4337 account abstraction**, enabling smart contract wallets, gas sponsorship, batched user operations, and custom authentication flows.
+
+The singleton EntryPoint contract is deployed on Taiko mainnet at:
+
+`0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108`
+
+Because Taiko is Ethereum-equivalent, standard ERC-4337 tooling (bundlers, paymasters, wallet SDKs) works without modification. Point your bundler at the Taiko RPC and configure the EntryPoint address above. See [Contract Addresses](/network/contract-addresses) for a full list of deployed contracts.
+
 ## Execution Engine Diff
 
 For a complete list of modifications to go-ethereum, see the taiko-geth diff:
