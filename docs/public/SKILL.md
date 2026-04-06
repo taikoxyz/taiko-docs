@@ -121,13 +121,13 @@ L2 contracts are predeployed at deterministic `0x167000...` addresses:
 
 ## Contract Addresses — Testnet L2 (Taiko Hoodi)
 
-L2 contracts are predeployed at deterministic `0x167000...` addresses:
+L2 contracts are predeployed at deterministic `0x167013...` addresses:
 
 | Contract             | Address                                      |
 | -------------------- | -------------------------------------------- |
-| Bridge               | `0x1670000000000000000000000000000000000001` |
-| ERC20Vault           | `0x1670000000000000000000000000000000000002` |
-| SignalService        | `0x1670000000000000000000000000000000000005` |
+| Bridge               | `0x1670130000000000000000000000000000000001` |
+| ERC20Vault           | `0x1670130000000000000000000000000000000002` |
+| SignalService        | `0x1670130000000000000000000000000000000005` |
 | TaikoToken (bridged) | `0x557f5b2b222F1F59F94682dF01D35Dd11f37939a` |
 | WETH                 | `0x3B39685B5495359c892DDD1057B5712F49976835` |
 
