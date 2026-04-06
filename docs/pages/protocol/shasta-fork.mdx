@@ -1,0 +1,61 @@
+# Shasta Fork [The protocol changes introduced by Taiko's Shasta upgrade.]
+
+Shasta is the next major protocol step after **Pacaya**. It keeps Pacaya's blob-based, proof-driven architecture, but reworks the protocol around a separate inbox, proposal-based derivation, and explicit L1/L2 routing for checkpoints and anchoring.
+
+## Proposal-Based Derivation
+
+Shasta organizes L2 block construction around **proposals** rather than the older batch terminology.
+
+Under this model:
+
+- proposals are identified by sequential proposal IDs
+- proposal data is carried in blob-backed derivation sources
+- forced inclusions are processed first and the proposer's source is appended last
+
+This keeps forced inclusion inside the normal proposal pipeline rather than treating it as a side path.
+
+## Sequential Finalization with Checkpoints
+
+Shasta keeps proving on Ethereum L1, but finalization becomes more explicitly checkpoint-driven.
+
+In practice:
+
+- `ShastaInbox` accepts proposals and proofs for contiguous proposal ranges
+- successful proving advances finalization in order
+- finalization writes a checkpoint into the signal service
+
+This gives the rest of the protocol a fresh L1-backed checkpoint as Shasta proposals finalize.
+
+## L1/L2 Routing and Anchoring
+
+Shasta also changes how L1 state is reflected on L2.
+
+- `Anchor` stores anchored L1 checkpoints on L2 and records metadata used by the preconfirmation flow
+- `SignalServiceForkRouter` switches signal-service behavior across the Pacaya/Shasta fork boundary
+- the fork routing model lets Pacaya-era and Shasta-era logic coexist cleanly during transition
+
+This is one of the main architectural differences from the simpler Pacaya overview.
+
+## Preconfirmation-Oriented Permissioning
+
+Shasta is built to support the staged preconfirmation rollout.
+
+It introduces:
+
+- proposer authorization through `PreconfWhitelist`
+- prover whitelisting with permissionless fallback after delay
+- permissionless proposal fallback when forced inclusions stay too old
+
+These controls keep the fast path structured without removing the protocol's escape hatches.
+
+## Key Contract Changes
+
+Shasta introduces or elevates several contracts:
+
+- `ShastaInbox` becomes the Shasta L1 protocol entry point
+- `Anchor` becomes the Shasta L2 anchoring contract
+- `PreconfWhitelist` controls proposer authorization
+- `ProverWhitelist` controls early proving access
+- `SignalServiceForkRouter` handles cross-fork signal-service routing
+
+See [Preconfirmations](/protocol/preconfirmations), [Proving System](/protocol/proving-system), and [Contract Addresses](/network/contract-addresses) for related details.
