@@ -36,9 +36,9 @@ Proposers (or preconfers) earn revenue from L2 transaction fees and bear costs f
 
 | Cost | Paid To | Description |
 |------|---------|-------------|
-| **L1 gas fee** | Ethereum L1 | Gas cost of calling `proposeBatch` on TaikoInbox to submit the batch on-chain. |
+| **L1 gas fee** | Ethereum L1 | Gas cost of calling `propose` on the Inbox smart contract to submit the batch on-chain. |
 | **Prover fee** | Block prover | Compensation to provers for generating validity proofs. This is negotiated off-chain between proposers and provers. |
-| **Liveness bond** | TaikoInbox (returned after verification) | TAIKO tokens locked when proposing a batch. Returned once the batch is proved and verified. |
+| **Liveness bond** | Inbox (returned after verification) | TAIKO tokens locked when proposing a batch. Returned once the batch is proved and verified. |
 
 :::info
 The liveness bond is not a cost in the typical sense -- it is returned to the proposer after successful proof verification. However, it represents locked capital and creates an opportunity cost. The base bond is **125 TAIKO tokens** per batch.

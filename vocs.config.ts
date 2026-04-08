@@ -46,8 +46,7 @@ export default defineConfig({
       collapsed: true,
       items: [
         { text: 'Bridge Tokens', link: '/guides/bridge-tokens' },
-        { text: 'Run a Node', link: '/guides/run-a-node' },
-        { text: 'Enable a Prover', link: '/guides/enable-a-prover' },
+        { text: 'Run a Node', link: '/guides/run-a-node' }
       ],
     },
     {
