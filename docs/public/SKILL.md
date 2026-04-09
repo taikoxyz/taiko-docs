@@ -121,13 +121,13 @@ L2 contracts are predeployed at deterministic `0x167000...` addresses:
 
 ## Contract Addresses — Testnet L2 (Taiko Hoodi)
 
-L2 contracts are predeployed at deterministic `0x167000...` addresses:
+L2 contracts are predeployed at deterministic `0x167013...` addresses:
 
 | Contract             | Address                                      |
 | -------------------- | -------------------------------------------- |
-| Bridge               | `0x1670000000000000000000000000000000000001` |
-| ERC20Vault           | `0x1670000000000000000000000000000000000002` |
-| SignalService        | `0x1670000000000000000000000000000000000005` |
+| Bridge               | `0x1670130000000000000000000000000000000001` |
+| ERC20Vault           | `0x1670130000000000000000000000000000000002` |
+| SignalService        | `0x1670130000000000000000000000000000000005` |
 | TaikoToken (bridged) | `0x557f5b2b222F1F59F94682dF01D35Dd11f37939a` |
 | WETH                 | `0x3B39685B5495359c892DDD1057B5712F49976835` |
 
@@ -181,7 +181,7 @@ cast call $CONTRACT "balanceOf(address)(uint256)" $ADDRESS \
 
 ```json
 {
-  "chainId": "0x28C75",
+  "chainId": "0x28C65",
   "chainName": "Taiko Testnet",
   "nativeCurrency": { "name": "Ether", "symbol": "ETH", "decimals": 18 },
   "rpcUrls": ["https://rpc.hoodi.taiko.xyz"],
@@ -189,7 +189,7 @@ cast call $CONTRACT "balanceOf(address)(uint256)" $ADDRESS \
 }
 ```
 
-Hex chain ID: `0x28C58` (167000 decimal). For Hoodi testnet: `0x28C75` (167013 decimal).
+Hex chain ID: `0x28C58` (167000 decimal). For Hoodi testnet: `0x28C65` (167013 decimal).
 
 ### Bridge tokens (programmatic)
 

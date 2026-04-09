@@ -105,19 +105,6 @@ The bridging flow differs in timing depending on the direction:
 **L2 to L1 withdrawals require waiting for proof verification.** Under the current configuration, this means the proving window (2 hours) plus the cooldown window (2 hours), for a minimum of approximately 4 hours. ERC20Vault supports solver-based fast withdrawals to mitigate this delay for ERC-20 tokens.
 :::
 
-## Quota Management
-
-The bridge implements **rate limits** on withdrawals via the **QuotaManager** contract. This prevents excessive outflows that could indicate an exploit.
-
-Example quotas:
-
-| Asset | Quota | Period |
-|-------|-------|--------|
-| **ETH** | 1,000 ETH | 24 hours |
-| **USDC** | 4,000,000 USDC | 24 hours |
-
-If a withdrawal would exceed the quota, the message processing returns an `OUT_OF_ETH_QUOTA` status reason. The message enters the RETRIABLE state and can be retried after the quota replenishes.
-
 ## Message Claiming: Automatic vs. Manual
 
 Bridge messages can be claimed in two ways:

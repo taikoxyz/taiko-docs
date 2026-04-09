@@ -4,7 +4,7 @@ Taiko is an **Ethereum-equivalent (type-1) based rollup** that scales Ethereum w
 
 ## What Makes Taiko Different
 
-**Based rollup.** Ethereum L1 validators sequence Taiko blocks. There is no centralized sequencer and no additional trust assumptions. Anyone can propose blocks permissionlessly. See [Based Rollups](/protocol/based-rollups) for a deep dive.
+**Based rollup.** Ethereum L1 validators order Taiko proposal transactions on L1. Under the current Shasta rollout, the fast proposing path is preconf-whitelisted, with permissionless fallback preserved through forced inclusion rules. See [Based Rollups](/protocol/based-rollups) for a deep dive.
 
 **Type-1 ZK-EVM.** Taiko runs an unmodified Ethereum execution layer. Every opcode, every precompile, every tool that works on Ethereum works on Taiko without modification. Developers deploy the same Solidity contracts with the same tooling (Hardhat, Foundry, etc.) -- no code changes needed.
 
@@ -14,70 +14,75 @@ Taiko is an **Ethereum-equivalent (type-1) based rollup** that scales Ethereum w
 
 | Component | Role |
 |-----------|------|
-| **Proposers** | Submit batches of L2 blocks to Ethereum L1 via the TaikoInbox contract. |
+| **Proposers** | Submit proposals containing one or more L2 blocks to Ethereum L1 via `Inbox`. |
 | **Provers** | Generate validity proofs (SGX + ZK) confirming that proposed blocks were executed correctly. |
-| **TaikoInbox** | L1 smart contract managing the batch lifecycle: proposal, proving, and verification. |
-| **TaikoAnchor** | L2 smart contract that anchors L1 state (block hashes, state roots) into the L2 chain. |
+| **Inbox** | L1 smart contract managing proposal intake, proof submission, checkpointing, and finalization. |
+| **Anchor** | L2 smart contract that anchors L1 checkpoints and related metadata into the L2 chain. |
 | **Bridge** | Cross-chain messaging system for transferring assets and messages between L1 and L2. |
 | **Signal Service** | Low-level cross-chain signaling contract used by the bridge for Merkle-proof-based message verification. |
-| **ComposeVerifier** | Verifier contract that orchestrates multiple sub-verifiers (SGX, ZK) for multi-proof validation. |
+| **ComposeVerifier / MainnetVerifier** | Verifier contract that orchestrates multiple sub-verifiers (SGX, ZK) for multi-proof validation. |
 
 ## How Blocks Flow Through the Protocol
 
-The lifecycle of a Taiko block follows three stages: proposal, proving, and verification.
+Under Shasta, the lifecycle of a Taiko block is best understood as **proposed, proved, and finalized**.
 
 ### 1. Proposed
 
-A proposer submits a batch of L2 blocks to the **TaikoInbox** contract on Ethereum L1 by calling `proposeBatch`. The batch includes transaction data (via calldata or blobs) and metadata. A liveness bond in TAIKO tokens is required from the proposer.
+A proposer submits one or more L2 blocks as a **proposal** to **Inbox** on Ethereum L1 by calling `propose`. Proposal data is carried through blob-backed derivation sources, and forced inclusions are processed first when due.
 
-At this point, blocks exist on-chain but have not yet been proven correct. Nodes execute the blocks optimistically.
+At this point, the proposal exists on L1 but has not yet advanced finalization. Nodes can derive and execute the L2 blocks optimistically.
 
 ### 2. Proved
 
-Provers generate validity proofs for the proposed batches. Under the current multi-proof system, each batch requires proofs from at least two independent proof systems (for example, sgxGeth + sgxReth). Provers call `proveBatches` on TaikoInbox, submitting an aggregated proof covering one or more batches.
+Provers generate validity proofs for a contiguous range of proposals. Under the current multi-proof system, the proof submitted to `Inbox.prove` is checked through a composed verifier, with sufficient proof pairs such as `sgxGeth + sgxReth`, `sgxGeth + RISC0`, or `sgxReth + SP1`.
 
-### 3. Verified
+The `Proved` event marks the range that was successfully covered by the proof submission.
 
-Once a batch has valid proofs and all its ancestor batches back to genesis are also proved, it transitions to the verified state. Verification happens via `verifyBatches`, which can process up to 16 batches at once. A verified block cannot be reverted -- it has the same finality guarantees as a finalized Ethereum block.
+### 3. Finalized
+
+In Shasta, successful proving advances finalization directly. `Inbox` checks that the proven range links to the current finalized head, writes a checkpoint into the signal service, and updates the finalized proposal ID and block hash in order.
+
+A finalized proposal range has crossed the protocol's main correctness checkpoint on L1.
 
 :::info
-Taiko allows parallel proof generation. Multiple batches can be proved concurrently, but verification proceeds in order -- a batch is only verified when its parent batch is also verified.
+Taiko still allows parallel proof generation, but finalization remains sequential. A proof can cover a range that overlaps already finalized proposals, yet it must advance finalization by at least one new proposal and connect cleanly to the latest finalized state.
 :::
 
 ## Block States Summary
 
 | State | Meaning | Finality |
 |-------|---------|----------|
-| **Proposed** | Submitted to TaikoInbox on L1. Transactions are included but not yet proven. | Soft -- can theoretically be invalidated. |
-| **Proved** | At least one set of validity proofs has been submitted. | Stronger -- cryptographic evidence exists. |
-| **Verified** | All state transitions from genesis to this block have valid proofs. | Final -- equivalent to Ethereum finality. |
+| **Proposed** | Submitted to `Inbox` on L1. Data is available for derivation, but the proposal has not yet advanced finalization. | Soft -- derivable but not finalized by the protocol. |
+| **Proved** | A valid proof submission has been accepted for a proposal range. | Stronger -- correctness has been checked by the configured verifier set. |
+| **Finalized** | The proven range has advanced the finalized proposal head and written a checkpoint to the signal service. | Final at the protocol level, with L1-backed checkpointing. |
 
-A Taiko L2 block also inherits Ethereum's **Safe** and **Finalized** designations. Each L2 block maps to an L1 origin block. If that L1 block is Safe, the L2 block is also considered Safe. The Verified state in Taiko corresponds to Ethereum's Finalized state.
+A Taiko L2 block also inherits Ethereum's **Safe** and **Finalized** designations through its L1 origin. Each L2 block maps to an L1 origin block. If that L1 block is Safe, the L2 block is also considered Safe. Shasta finalization is the protocol's own ordered checkpoint-finalization step on top of that L1 anchoring model.
 
-## Current Protocol Design: Pacaya Fork
+## Current Protocol Design: Shasta Fork
 
-The Pacaya fork (live since May 2025) introduced several important changes to the protocol:
+The Shasta fork reorganized the protocol around proposals, checkpoint-driven finalization, and explicit L1/L2 routing.
 
-**Batch-based protocol.** Blocks are proposed in batches rather than individually. Each batch can contain zero, one, or many blocks. All blocks in a batch share metadata and pull transactions from the same data source. This makes small, frequent blocks (needed for preconfirmations) only marginally more expensive than large, infrequent blocks.
+**Proposal-based derivation.** Blocks are organized around proposals handled by a separate `Inbox`
 
-**Multi-proof replacing contestation.** The earlier contestable proof system (with guardian provers) was replaced by mandatory multi-proving. Every batch requires proofs from multiple independent verifiers, verified through the ComposeVerifier contract. This simplifies the protocol and removes the security surface that guardian provers introduced.
+**Checkpoint-driven finalization.** Successful proof submission finalizes proposal ranges in order and writes checkpoints into the signal service.
 
-**Shortened windows.** Proving and cooldown windows are set to 2 hours, with further reductions planned to enable faster withdrawals.
+**Whitelist-first rollout controls.** Proposer authorization and prover whitelisting structure the fast path during the preconfirmation rollout, while forced inclusion and delayed permissionless proving preserve escape hatches.
 
 **Key contracts introduced:**
 
-- **TaikoInbox** replaces the former TaikoL1 contract
-- **TaikoAnchor** replaces the former TaikoL2 contract
+- **Inbox** becomes the main Shasta L1 protocol entry point
+- **Anchor** becomes the Shasta L2 anchoring contract
 - **ComposeVerifier** orchestrates multi-proof verification
 - **ForcedInclusionStore** preserves censorship resistance during the preconfirmation rollout
+- **SignalServiceForkRouter** handles routing across the Pacaya/Shasta fork boundary
 
 ## Further Reading
 
 - [Based Rollups](/protocol/based-rollups) -- how L1-sequenced block ordering works
-- [Pacaya Fork](/protocol/pacaya-fork) -- the shift to batch-based proposing and multi-proof verification
+- [Shasta Fork](/protocol/shasta-fork) -- proposal-based derivation and checkpoint finalization
 - [Proving System](/protocol/proving-system) -- multi-proof verification architecture
+- [Pacaya Fork](/protocol/pacaya-fork) -- the earlier batch-based protocol design
 - [Bridging](/protocol/bridging) -- cross-chain messaging and asset transfers
 - [Economics](/protocol/economics) -- fees, bonds, and token utility
 - [Preconfirmations](/protocol/preconfirmations) -- faster transaction finality via based preconfirmations
-- [Account Abstraction](/protocol/account-abstraction) -- ERC-4337 support on Taiko
-- [Node Architecture](/protocol/node-architecture) -- how taiko-geth and taiko-client work together
+- [Differences from Ethereum](/network/differences-from-ethereum) -- EVM version, account abstraction, and chain-specific behavior
