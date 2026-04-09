@@ -1,139 +1,134 @@
-# Proving System [Taiko's multi-proof verification system.]
+# Proving System [Taiko's Shasta proving and verification flow.]
 
-Taiko uses a **multi-proof architecture** to verify the correctness of L2 state transitions. Rather than relying on a single proof type, the protocol requires multiple independent proof systems to agree on each batch of blocks. This design provides defense in depth -- even if one proof system is compromised, the other prevents invalid state transitions from being accepted.
+Under the **Shasta** architecture, Taiko proves L2 state transitions on Ethereum L1 through the `Inbox` and a compose `proofVerifier`. The core idea is still proof diversity, but the lifecycle is no longer the old Pacaya-style `proveBatches` plus `verifyBatches` flow. In Shasta, a successful proof submission advances finalization directly for a contiguous range of proposals.
 
-## Multi-Proof Architecture
+## Shasta Proving Model
 
-The core principle is simple: **no single proof type is trusted in isolation**. Every batch must be verified by at least two independent proof systems before it can be considered proved.
+Shasta organizes L2 data around **proposals** rather than the older batch terminology.
 
-The current configuration requires:
+At a high level:
 
-| Proof Type | Implementation | Trust Basis |
-|-----------|----------------|-------------|
-| **sgxReth** (Raiko) | SGX TEE running a Rust Ethereum execution client | Hardware-based trusted execution environment |
-| **sgxGeth** (Gaiko) | SGX TEE running a Go Ethereum execution client | Hardware-based trusted execution environment (different client) |
+1. A proposer submits one or more L2 blocks as a proposal to `Inbox`.
+2. A prover submits a proof for a contiguous range of proposals by calling `prove`.
+3. `Inbox` validates the proof range, checks parent-hash continuity, and forwards the proof to its configured `proofVerifier`.
+4. If the proof is valid, `Inbox` writes a checkpoint to the signal service and advances finalization for the proven range.
 
-This provides both **proof diversity** (two independent implementations) and **client diversity** (Rust vs. Go execution clients), significantly reducing the risk of correlated failures.
+This means there is no separate public "verified later by cooldown" step in the Shasta inbox flow. Successful proving is what advances finalization.
 
-:::info
-The protocol is designed to support ZK proofs (RISC0, SP1) as additional or alternative proof types. When ZK proofs are active, the configuration can be TEE + ZK rather than TEE + TEE, providing an even stronger security guarantee since the two proof types rely on fundamentally different trust assumptions.
-:::
+## Proof Verifier Composition
 
-## ComposeVerifier: Orchestrating Multiple Proofs
+The inbox does not hardcode a single proving system. Instead, it points at a verifier contract that implements `IProofVerifier`. In the current Shasta deployment is a `ComposeVerifier` over multiple sub-verifiers.
 
-The **ComposeVerifier** contract is the central coordination point for multi-proof verification. It designates which sub-verifiers are active in the protocol and ensures that a sufficient set of sub-proofs are verified before the overall proof is accepted.
+The deployed Shasta verifier set includes:
 
-The verification flow:
+| Proof Type | Contract Family | Trust Basis |
+|-----------|------------------|-------------|
+| **sgxGeth** | `SgxVerifier` | Intel SGX attestation over a Go Ethereum-derived execution path |
+| **sgxReth** | `SgxVerifier` | Intel SGX attestation over a Reth-derived execution path |
+| **RISC0** | `Risc0Verifier` | Cryptographic ZK proof |
+| **SP1** | `SP1Verifier` | Cryptographic ZK proof |
 
-1. A prover generates proofs from each required proof system for a batch (or set of batches).
-2. The prover calls `proveBatches` on TaikoInbox, passing the aggregated proof.
-3. TaikoInbox forwards the proof to ComposeVerifier.
-4. ComposeVerifier decodes the aggregated proof into individual sub-proofs and routes each one to its respective sub-verifier (e.g., SgxVerifier for SGX proofs).
-5. ComposeVerifier checks that the set of verified sub-proofs is **sufficient** according to the protocol's current configuration.
-6. If all required sub-proofs are valid, the batch is marked as proved.
+The mainnet `Verifier` accepts exactly two sub-proofs in one of these combinations:
 
-The `areVerifiersSufficient` method on ComposeVerifier determines whether a given set of verifiers meets the protocol's requirements. This allows the protocol to upgrade its proof requirements without changing the core verification logic.
+- `sgxGeth + sgxReth`
+- `sgxGeth + risc0`
+- `sgxGeth + sp1`
+- `sgxReth + risc0`
+- `sgxReth + sp1`
 
-## SGX Proofs
+This keeps proof diversity while allowing the active proof mix to evolve over time.
 
-SGX (Software Guard Extensions) proofs use Intel's Trusted Execution Environment (TEE) technology. An SGX enclave re-executes the L2 block transitions in a hardware-isolated environment and produces a signed attestation that the state transition is correct.
+## How `prove` Works
 
-### How SGX Verification Works
+When a prover calls `prove` on `Inbox`, the contract:
 
-1. An SGX enclave loads the L2 block data and re-executes all transactions.
-2. The enclave produces a signature over the resulting state transition using an ECDSA key pair generated inside the enclave.
-3. The signature and instance ID are submitted on-chain.
-4. The **SgxVerifier** contract validates the signature against a registered SGX instance.
+1. Decodes a commitment covering a contiguous range of proposals.
+2. Allows the proof range to overlap already finalized proposals, but requires it to advance finalization by at least one proposal.
+3. Checks that the range connects to the latest finalized block hash.
+4. Saves a checkpoint to the signal service.
+5. Updates `lastFinalizedProposalId`, `lastFinalizedTimestamp`, and `lastFinalizedBlockHash`.
+6. Calls the configured `proofVerifier`.
 
-### SGX Instance Management
+## SGX and ZK Proof Roles
 
-SGX instances are registered on-chain via the SgxVerifier contract. Key parameters:
+Taiko's verifier set is intentionally mixed:
 
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| **Instance expiry** | 365 days | SGX instances must be re-registered annually. |
-| **Validity delay** | 1 hour | New instances cannot be used immediately after registration. |
+- **SGX proofs** are generally cheaper and faster to produce, but rely on trusted hardware assumptions.
+- **ZK proofs** are slower and more computationally expensive, but provide a purely cryptographic guarantee.
+- **Client diversity** matters too: the Shasta verifier set spans both geth-based and reth-based proving paths.
 
-Instances can be added by the contract owner and removed by the owner or a designated watchdog role. If an invalid proof is detected, the SGX instance is automatically rotated.
+The protocol therefore does not rely on a single verifier family or a single execution client to advance finalization.
 
-### Batch Proof Verification
+## Prover Permissions
 
-SgxVerifier supports batch proof verification via `verifyBatchProof`, which validates a single signature covering multiple block state transitions. This is more gas-efficient than verifying each block individually.
+Shasta is designed for the staged preconfirmation rollout, so proving is not simply "anyone at any time".
 
-## ZK Proofs
+When the `ProverWhitelist` is enabled:
 
-The protocol includes verifier contracts for two ZK proof systems:
+- whitelisted provers can prove immediately
+- non-whitelisted provers can only prove once a proposal is older than `permissionlessProvingDelay`
 
-- **RISC0 Verifier** -- verifies proofs generated by the RISC Zero zkVM
-- **SP1 Verifier** -- verifies proofs generated by the Succinct SP1 prover
+On the live mainnet Shasta inbox, the proving-related timing parameters are:
 
-ZK proofs provide a **cryptographic guarantee** of correctness that does not depend on hardware trust assumptions. They are computationally more expensive to generate than SGX proofs but provide a stronger security model.
+| Parameter | Value | Purpose |
+|----------|-------|---------|
+| **Proving window** | 4 hours | Target window before a proof is considered late |
+| **Permissionless proving delay** | 5 days | Delay after which non-whitelisted provers may prove |
+| **Max proof submission delay** | 3 minutes | Sequential grace term used in the late-proof calculation |
 
-When active, a typical configuration would pair an SGX proof (fast, lower cost) with a ZK proof (slower, higher cost, stronger guarantee). The ComposeVerifier treats both as equally valid sub-proofs.
+The late-proof cutoff is not just `proposal timestamp + proving window`. The inbox uses the maximum of:
 
-## End-to-End Verification Flow
+- `proposal.timestamp + provingWindow`
+- `lastFinalizedTimestamp + maxProofSubmissionDelay`
 
+## What Happens If a Proof Is Late
+
+The inbox still defines a late-proof settlement path for configurations that use nonzero bonds and do not rely on whitelist mode:
+
+- if a proof arrives on time, no bond transfer happens
+- if it arrives late, the proposer's liveness bond can be debited
+- half of the debited amount is credited to the actual prover
+- the other half is slashed
+
+That logic is best-effort: if the proposer has less than the configured liveness bond, the inbox debits whatever balance is available and splits that actual amount.
+
+For the current live Shasta configuration, however, this path is effectively dormant because `livenessBond = 0` and proving runs with whitelist mode enabled.
+
+## End-to-End Flow
+
+```text
+Proposer submits proposal(s) to Inbox
+        |
+        v
+ Proposal range exists on L1 but is not finalized
+        |
+        v
+ Prover assembles commitment + sub-proofs
+        |
+        v
+ prove() called on Inbox
+        |
+        v
+ Inbox validates range + prover permissions
+        |
+        v
+ MainnetVerifier / ComposeVerifier routes proof pieces
+ to SGX and/or ZK sub-verifiers
+        |
+        v
+ Required verifier combination passes
+        |
+        v
+ Inbox writes checkpoint and advances finalization
 ```
-Proposer submits batch
-        |
-        v
-  Batch is PROPOSED (on-chain, unproven)
-        |
-        v
-  Prover generates sgxReth proof  +  Prover generates sgxGeth proof
-        |                                      |
-        v                                      v
-  Sub-proofs aggregated into single proof submission
-        |
-        v
-  proveBatches() called on TaikoInbox
-        |
-        v
-  ComposeVerifier routes sub-proofs to respective verifiers
-        |
-        v
-  All required sub-proofs verified --> Batch is PROVED
-        |
-        v
-  verifyBatches() checks sequential chain from genesis
-        |
-        v
-  Batch is VERIFIED (final)
-```
-
-## Proving Windows
-
-Under the Pacaya fork, the proving and cooldown windows are configured as follows:
-
-| Window | Duration | Purpose |
-|--------|----------|---------|
-| **Proving window** | 2 hours | Time allowed for provers to submit proofs after a batch is proposed. |
-| **Cooldown window** | 2 hours | Waiting period after a proof is submitted before the batch can be verified. |
-
-:::warning
-If no proof is submitted within the proving window, the proposer's liveness bond may be forfeited. Provers have a strong economic incentive to submit proofs promptly.
-:::
-
-## Liveness Bonds
-
-Proposers must deposit a liveness bond when proposing a batch. The base bond is **125 TAIKO tokens** per batch. This bond serves two purposes:
-
-1. **Spam prevention** -- makes it economically costly to propose invalid or empty batches at scale.
-2. **Prover incentive alignment** -- the bond is returned to the proposer once the batch is proved and verified. If the batch is never proved, the bond can be forfeited.
-
-## Current Proof Coverage
-
-Taiko currently runs with **100% proof coverage** on mainnet. In other words, every proposed batch is expected to be covered by the active proof configuration before it can progress to final verification.
-
-You can monitor the current proving status and coverage on [proofs.taiko.xyz](https://proofs.taiko.xyz/).
 
 ## Summary
 
-Taiko's proving system achieves security through redundancy:
+Under Shasta, Taiko's proving system is defined by:
 
-- **Multiple proof types** must independently verify each batch
-- **Client diversity** (different execution clients) reduces correlated failure risk
-- **ComposeVerifier** provides a flexible framework for adding or replacing proof systems
-- **SGX proofs** offer fast, hardware-based verification
-- **ZK proofs** provide the strongest cryptographic guarantees
-- **Short proving windows** (2 hours) keep the protocol responsive while giving provers sufficient time
+- proposal-range proving through `Inbox.prove`
+- direct finalization on successful proof submission
+- a compose verifier that accepts sufficient SGX/ZK proof combinations
+- whitelist-first prover access with permissionless fallback after delay
+
+For the broader protocol context, see [Shasta Fork](/protocol/shasta-fork), [Based Rollups](/protocol/based-rollups), and [Contract Addresses](/network/contract-addresses).

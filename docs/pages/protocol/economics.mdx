@@ -41,7 +41,7 @@ Proposers (or preconfers) earn revenue from L2 transaction fees and bear costs f
 | **Liveness bond** | Inbox (returned after verification) | TAIKO tokens locked when proposing a batch. Returned once the batch is proved and verified. |
 
 :::info
-The liveness bond is not a cost in the typical sense -- it is returned to the proposer after successful proof verification. However, it represents locked capital and creates an opportunity cost. The base bond is **125 TAIKO tokens** per batch.
+The liveness bond is not a cost in the typical sense -- it is returned to the proposer after successful proof verification. However, it represents locked capital and creates an opportunity cost.
 :::
 
 ### Profitability Considerations
@@ -68,22 +68,6 @@ Provers generate validity proofs (SGX, ZK) for proposed batches and submit them 
 |------|-------------|
 | **Computation** | Generating SGX attestations or ZK proofs requires significant computational resources. SGX proofs are cheaper; ZK proofs are more expensive. |
 | **L1 gas** | Submitting proofs to Ethereum L1 via `proveBatches` incurs gas fees. Batch proof verification amortizes this cost. |
-
-## Liveness Bonds
-
-The liveness bond system ensures that proposers have skin in the game. Key parameters:
-
-| Parameter | Value | Description |
-|-----------|-------|-------------|
-| **Base bond** | 125 TAIKO | Required deposit per batch. |
-| **Bond token** | TAIKO | Must be deposited via `depositBond` on TaikoInbox. |
-| **Return condition** | Batch proved and verified | Bond is returned to the proposer after successful verification. |
-
-Proposers call `depositBond` to lock TAIKO tokens before proposing and `withdrawBond` to retrieve them after their batches are verified.
-
-:::warning
-If a proposer's batch is not proved within the proving window (currently 2 hours), the liveness bond may be forfeited. This incentivizes proposers to have reliable proving arrangements in place before submitting batches.
-:::
 
 ## Taiko DAO Treasury
 
