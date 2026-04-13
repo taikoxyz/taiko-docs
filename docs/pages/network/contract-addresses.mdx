@@ -6,7 +6,9 @@ The canonical source for deployment data is the [deployment logs on GitHub](http
 
 ## Mainnet L1 (Ethereum)
 
-### Shared Contracts
+### Bridge & Messaging
+
+Cross-chain plumbing used by any dapp moving assets or messages between L1 and Taiko. These contracts persist across protocol forks.
 
 | Contract           | Proxy Address                                |
 | ------------------ | -------------------------------------------- |
@@ -19,7 +21,9 @@ The canonical source for deployment data is the [deployment logs on GitHub](http
 | QuotaManager       | `0x91f67118DD47d502B1f0C354D0611997B022f29E` |
 | SharedAddressManager | `0xEf9EaA1dd30a9AA1df01c36411b5F082aA65fBaa` |
 
-### Rollup Contracts (Shasta)
+### Rollup Protocol (Shasta)
+
+The live rollup: proposal inbox, preconfirmation routing, address resolvers, and ZK/TEE verifiers.
 
 | Contract              | Address                                      |
 | --------------------- | -------------------------------------------- |
@@ -36,7 +40,10 @@ The canonical source for deployment data is the [deployment logs on GitHub](http
 | Risc0Verifier (impl)       | `0x059dAF31F571da48Ab4e74Ae12F64f907681Cd8b` |
 | SP1Verifier (impl)         | `0x96337327648dcFA22b014009cf10A2D5E2F305f6` |
 
-### Legacy Contracts
+<details>
+<summary>Legacy (Pacaya fork)</summary>
+
+Contracts from the previous **Pacaya** fork, superseded by Shasta. Kept here for historical reference and for any integrations still reading from the old inbox.
 
 | Contract              | Proxy Address                                |
 | --------------------- | -------------------------------------------- |
@@ -45,11 +52,6 @@ The canonical source for deployment data is the [deployment logs on GitHub](http
 | ForcedInclusionStore  | `0x05d88855361808fA1d7fc28084Ef3fCa191c4e03` |
 | ComposeVerifier       | `0xB16931e78d0cE3c9298bbEEf3b5e2276D34b8da1` |
 | RollupAddressManager  | `0x579f40D0BE111b823962043702cabe6Aaa290780` |
-
-### Legacy Verifiers
-
-| Contract                | Proxy Address                                |
-| ----------------------- | -------------------------------------------- |
 | SgxRethVerifier         | `0x9e322fC59b8f4A29e6b25c3a166ac1892AA30136` |
 | SgxGethVerifier         | `0x7e6409e9b6c5e2064064a6cC994f9a2e95680782` |
 | Risc0RethVerifier       | `0x73Ee496dA20e5C65340c040B0D8c3C891C1f74AE` |
@@ -60,9 +62,11 @@ The canonical source for deployment data is the [deployment logs on GitHub](http
 | TierRisc0               | `0x55902b2D3DF2A65370A89C86Ae9dd71Ecd508edc` |
 | TierSP1                 | `0x5c44f2239925b0d86d2BFEe539f19CD0A08Af452` |
 
+</details>
+
 ## Mainnet L2 (Taiko Alethia)
 
-### Rollup Contracts (Shasta)
+### Rollup Protocol (Shasta)
 
 | Contract                     | Address                                      |
 | ---------------------------- | -------------------------------------------- |
@@ -73,7 +77,7 @@ The canonical source for deployment data is the [deployment logs on GitHub](http
 | SignalServiceForkRouter      | `0x2987F6Bef39b03F8522EC38B36aF0f7422938EAb` |
 | SignalServiceImpl            | `0x18B27428cce679DFf84D09D6b07DF1E9EBb6fE28` |
 
-### Shared Contracts
+### Bridge & Messaging
 
 Predeployed at deterministic `0x167000...` addresses.
 
@@ -101,16 +105,21 @@ Predeployed at deterministic `0x167000...` addresses.
 | ERC8004 IdentityRegistry   | `0x8004A169FB4a3325136EB29fA0ceB6D2e539a432`                                              |
 | ERC8004 ReputationRegistry | `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`                                              |
 
-### Legacy Contracts
+<details>
+<summary>Legacy (Pacaya fork)</summary>
+
+Resolvers from the previous **Pacaya** fork, superseded by the Shasta resolvers above.
 
 | Contract              | Proxy Address                                |
 | --------------------- | -------------------------------------------- |
 | SharedResolver        | `0xc32277f541bBADAA260337E71Cea53871D310DC8` |
 | RollupResolver        | `0x73251237d8F1B99e9966bB054722F3446195Ea56` |
 
+</details>
+
 ## Hoodi Testnet L1 (Ethereum Hoodi)
 
-### Shared Contracts
+### Bridge & Messaging
 
 | Contract           | Proxy Address                                |
 | ------------------ | -------------------------------------------- |
@@ -122,7 +131,7 @@ Predeployed at deterministic `0x167000...` addresses.
 | ERC1155Vault       | `0x81Ff6CcE1e5cFd6ebE83922F5A9608d1752C92c6` |
 | SharedResolver     | `0x7bbacc9FFd29442DF3173b7685560fCE96E01b62` |
 
-### Rollup Contracts (Shasta)
+### Rollup Protocol (Shasta)
 
 | Contract              | Proxy Address                                |
 | --------------------- | -------------------------------------------- |
@@ -132,7 +141,10 @@ Predeployed at deterministic `0x167000...` addresses.
 | ProverWhitelist       | `0xa9a84b6667A2c60BFdE8c239918d0d9a11c77E89` |
 | RollupAddressResolver | `0x0d006d8d394dD69fAfEfF62D21Fc03E7F50eDaF4` |
 
-### Legacy Contracts
+<details>
+<summary>Legacy (Pacaya fork)</summary>
+
+Contracts from the previous **Pacaya** fork, superseded by Shasta.
 
 | Contract             | Proxy Address                                |
 | -------------------- | -------------------------------------------- |
@@ -145,9 +157,18 @@ Predeployed at deterministic `0x167000...` addresses.
 | Risc0RethVerifier    | `0xbf285Dd2FD56BF4893D207Fba4c738D1029edFfd` |
 | SP1RethVerifier      | `0x3B3bb4A1Cb8B1A0D65F96a5A93415375C039Eda3` |
 
+</details>
+
 ## Hoodi Testnet L2 (Taiko Hoodi)
 
-### Shared Contracts
+### Rollup Protocol (Shasta)
+
+| Contract              | Proxy Address                                |
+| --------------------- | -------------------------------------------- |
+| TaikoAnchor           | `0x1670130000000000000000000000000000010001` |
+| RollupResolver        | `0x1670130000000000000000000000000000010002` |
+
+### Bridge & Messaging
 
 | Contract           | Proxy Address                                |
 | ------------------ | -------------------------------------------- |
@@ -158,14 +179,7 @@ Predeployed at deterministic `0x167000...` addresses.
 | SignalService      | `0x1670130000000000000000000000000000000005` |
 | SharedResolver     | `0x1670130000000000000000000000000000000006` |
 
-### Rollup Contracts
-
-| Contract              | Proxy Address                                |
-| --------------------- | -------------------------------------------- |
-| TaikoAnchor           | `0x1670130000000000000000000000000000010001` |
-| RollupResolver        | `0x1670130000000000000000000000000000010002` |
-
-### Key Tokens and Utilities
+### Key Tokens & Utilities
 
 | Contract              | Address                                |
 | --------------------- | -------------------------------------------- |
