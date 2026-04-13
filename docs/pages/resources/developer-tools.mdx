@@ -92,6 +92,14 @@ For production applications, use a dedicated RPC provider to avoid public rate l
 | **Thirdweb** | [thirdweb.com/taiko](https://thirdweb.com/taiko) |
 | **Openfort** | [openfort.io](https://openfort.io) |
 
+## Payments
+
+| Tool | URL | Description |
+| --- | --- | --- |
+| **Taiko x402 Facilitator** | [facilitator.taiko.xyz](https://facilitator.taiko.xyz) | Hosted [x402](https://www.x402.org/) payment backend that verifies and settles pay-per-request API charges on Taiko. Supports mainnet (`eip155:167000`) and Hoodi (`eip155:167013`) — see [`/supported`](https://facilitator.taiko.xyz/supported). |
+
+Point your x402 server implementation at this facilitator URL and it will verify client payment signatures and settle them on-chain — no need to run your own facilitator.
+
 ## AI Tools
 
 | Resource | URL | Description |
