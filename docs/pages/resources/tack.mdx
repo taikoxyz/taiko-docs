@@ -1,80 +1,67 @@
 ---
-description: IPFS storage for AI agents. No API keys. No accounts.
+description: IPFS pinning for AI agents. No API keys. No accounts. Pay per request in USDC.
 ---
 
-# One endpoint. Give it to your agent. [IPFS storage for AI agents. No API keys. No accounts.]
+# One endpoint. Give it to your agent. [IPFS pinning for AI agents. No API keys. No accounts.]
 
-## Fully autonomous operation
+Tack is a standard [IPFS Pinning Service API](https://ipfs.github.io/pinning-services-api-spec/) with x402 payments bolted on. Your agent pins content and pays per request in USDC on Taiko — no signup, no dashboard, no human in the loop.
 
-Your agent can store and retrieve files on IPFS without any human setup. No accounts to create, no API keys to manage, no approval flows. The agent handles everything autonomously.
+## Endpoints
 
-:::code-group
+| Method | Path | Purpose |
+|--------|------|---------|
+| `POST` | `/pins` | Pin an existing CID. Body: `{"cid": "Qm..."}` |
+| `POST` | `/upload` | Upload a file (≤100 MB) and pin it. Multipart `file=` |
+| `GET`  | `/ipfs/:cid` | Retrieve content. Supports range + ETag |
+| `GET`  | `/pins` / `/pins/:requestid` | List / inspect your pins (bearer auth) |
+| `DELETE` | `/pins/:requestid` | Unpin content you own (bearer auth) |
 
-```bash [Store a file]
-curl -X POST https://tack.taiko.xyz/store \
+Unauthenticated write calls respond with `402 Payment Required` and the x402 details — your client pays and retries automatically.
+
+```bash [See the payment challenge]
+curl -i -X POST https://tack.taiko.xyz/pins \
   -H "Content-Type: application/json" \
-  -d '{"content": "Hello from my agent"}'
+  -d '{"cid": "QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG"}'
+# → HTTP/2 402, Payment-Required: <base64 x402 challenge>
 ```
 
-```bash [Retrieve a file]
-curl https://tack.taiko.xyz/retrieve/<cid>
+## Agent example
+
+Use [`@x402/fetch`](https://www.npmjs.com/package/@x402/fetch) so payments happen inline:
+
+```ts
+import { wrapFetchWithPaymentFromConfig } from "@x402/fetch";
+import { ExactEvmScheme } from "@x402/evm";
+
+const x402Fetch = wrapFetchWithPaymentFromConfig(fetch, {
+  schemes: [{ network: "eip155:167000", client: new ExactEvmScheme(wallet) }],
+});
+
+const res = await x402Fetch("https://tack.taiko.xyz/pins", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-Pin-Duration-Months": "6", // 1–24, default 1
+  },
+  body: JSON.stringify({ cid: "Qm..." }),
+});
+
+// Save res.headers["x-wallet-auth-token"] — it's your Bearer token
+// for owner endpoints (GET /pins, DELETE /pins/:id).
+
+const content = await fetch("https://tack.taiko.xyz/ipfs/Qm..."); // free by default
 ```
 
-:::
+## What to know before shipping
 
-## How it works
-
-1. **Your agent calls the endpoint** — One POST request to store content, one GET to retrieve it
-2. **Tack handles storage** — Content is pinned to IPFS automatically
-3. **Payment happens inline** — x402 protocol handles USDC micropayments per request, no prepaid credits or billing accounts
-
-## Why agents love this
-
-| Feature | Benefit |
-|---------|---------|
-| **No API keys** | Agent doesn't need credentials provisioned by a human |
-| **No accounts** | No signup, no dashboard, no human in the loop |
-| **Pay-per-request** | x402 micropayments in USDC, only pay for what you use |
-| **Standard HTTP** | Works with any HTTP client, no SDKs required |
-
-## x402 payments
-
-Tack uses the [x402 protocol](https://www.x402.org/) for payments. When your agent makes a request:
-
-1. Tack returns a `402 Payment Required` response with payment details
-2. Your agent's x402-compatible client handles the USDC micropayment automatically
-3. The request completes and returns the result
-
-No wallets to configure, no transactions to sign manually. The agent handles the payment flow autonomously.
-
-## Get started
-
-Point your agent at the endpoint:
-
-```
-https://tack.taiko.xyz
-```
-
-That's it. Your agent can now store and retrieve files on IPFS.
-
-## Example: Store agent memory
-
-```python
-import requests
-
-# Store conversation context
-response = requests.post(
-    "https://tack.taiko.xyz/store",
-    json={"content": "User prefers concise responses"}
-)
-cid = response.json()["cid"]
-
-# Retrieve it later
-memory = requests.get(f"https://tack.taiko.xyz/retrieve/{cid}")
-```
+- **Pricing.** $0.10 per GB-month (min $0.001). Set `X-Pin-Duration-Months` between 1 and 24.
+- **Funding.** Agent needs USDC on Taiko mainnet (`eip155:167000`, asset `0x07d83526730c7438048D55A4fc0b850e2aaB6f0b`) — no ETH required.
+- **Owner auth.** Paid writes return `x-wallet-auth-token`; pass it as `Authorization: Bearer …` to list or delete your own pins.
+- **Discovery.** Agent card lives at [`/.well-known/agent.json`](https://tack.taiko.xyz/.well-known/agent.json); liveness at [`/health`](https://tack.taiko.xyz/health).
+- **Pin vs upload.** `/pins` expects a CID you already computed. To hand Tack raw bytes, use `/upload`.
 
 ## Learn more
 
-- [Taiko homepage](https://taiko.xyz) — Learn about Taiko's based rollup
-- [Taiko documentation](https://docs.taiko.xyz) — Full developer documentation
-- [Agent Quickstart](/quickstart/agent) — Deploy contracts and bridge tokens with your agent
+- [x402 protocol](https://www.x402.org/) — payment flow spec
+- [Tack on GitHub](https://github.com/ggonzalez94/ipfs-manager) — source and issues
+- [Agent Quickstart](/quickstart/agent) — deploy contracts and bridge with your agent
