@@ -24,7 +24,7 @@ Taiko is an **Ethereum-equivalent (type-1) based rollup** that scales Ethereum w
 
 ## How Blocks Flow Through the Protocol
 
-Under Shasta, the lifecycle of a Taiko block is best understood as **proposed, proved, and finalized**.
+Under Shasta, a Taiko block moves through two protocol states: **proposed**, then **proved and finalized** in a single step.
 
 ### 1. Proposed
 
@@ -32,17 +32,11 @@ A proposer submits one or more L2 blocks as a **proposal** to **Inbox** on Ether
 
 At this point, the proposal exists on L1 but has not yet advanced finalization. Nodes can derive and execute the L2 blocks optimistically.
 
-### 2. Proved
+### 2. Proved and Finalized
 
-Provers generate validity proofs for a contiguous range of proposals. Under the current multi-proof system, the proof submitted to `Inbox.prove` is checked through a composed verifier, with sufficient proof pairs such as `sgxGeth + sgxReth`, `sgxGeth + RISC0`, or `sgxReth + SP1`.
+Provers generate validity proofs for a contiguous range of proposals. The proof submitted to `Inbox.prove` is checked through a composed verifier, with sufficient proof pairs such as `sgxGeth + sgxReth`, `sgxGeth + RISC0`, or `sgxReth + SP1`.
 
-The `Proved` event marks the range that was successfully covered by the proof submission.
-
-### 3. Finalized
-
-In Shasta, successful proving advances finalization directly. `Inbox` checks that the proven range links to the current finalized head, writes a checkpoint into the signal service, and updates the finalized proposal ID and block hash in order.
-
-A finalized proposal range has crossed the protocol's main correctness checkpoint on L1.
+In Shasta, a successful proof submission finalizes the proven range directly. `Inbox` checks that the range links to the current finalized head, writes a checkpoint into the signal service, and updates the finalized proposal ID and block hash. There is no separate post-proving finalization step: once a proposal range is proved, it is final.
 
 :::info
 Taiko still allows parallel proof generation, but finalization remains sequential. A proof can cover a range that overlaps already finalized proposals, yet it must advance finalization by at least one new proposal and connect cleanly to the latest finalized state.
@@ -53,8 +47,7 @@ Taiko still allows parallel proof generation, but finalization remains sequentia
 | State | Meaning | Finality |
 |-------|---------|----------|
 | **Proposed** | Submitted to `Inbox` on L1. Data is available for derivation, but the proposal has not yet advanced finalization. | Soft -- derivable but not finalized by the protocol. |
-| **Proved** | A valid proof submission has been accepted for a proposal range. | Stronger -- correctness has been checked by the configured verifier set. |
-| **Finalized** | The proven range has advanced the finalized proposal head and written a checkpoint to the signal service. | Final at the protocol level, with L1-backed checkpointing. |
+| **Proved and Finalized** | A valid proof has been accepted, the proven range has advanced the finalized proposal head, and a checkpoint has been written to the signal service. | Final at the protocol level, with L1-backed checkpointing. |
 
 A Taiko L2 block also inherits Ethereum's **Safe** and **Finalized** designations through its L1 origin. Each L2 block maps to an L1 origin block. If that L1 block is Safe, the L2 block is also considered Safe. Shasta finalization is the protocol's own ordered checkpoint-finalization step on top of that L1 anchoring model.
 
@@ -79,10 +72,10 @@ The Shasta fork reorganized the protocol around proposals, checkpoint-driven fin
 ## Further Reading
 
 - [Based Rollups](/protocol/based-rollups) -- how L1-sequenced block ordering works
-- [Shasta Fork](/protocol/shasta-fork) -- proposal-based derivation and checkpoint finalization
+- [Shasta Fork](/protocol/shasta-fork) -- the current fork: proposal-based derivation and checkpoint finalization
 - [Proving System](/protocol/proving-system) -- multi-proof verification architecture
-- [Pacaya Fork](/protocol/pacaya-fork) -- the earlier batch-based protocol design
 - [Bridging](/protocol/bridging) -- cross-chain messaging and asset transfers
 - [Economics](/protocol/economics) -- fees, bonds, and token utility
 - [Preconfirmations](/protocol/preconfirmations) -- faster transaction finality via based preconfirmations
+- [Pacaya Fork](/protocol/pacaya-fork) -- historical: the earlier batch-based protocol design
 - [Differences from Ethereum](/network/differences-from-ethereum) -- EVM version, account abstraction, and chain-specific behavior

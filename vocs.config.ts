@@ -64,8 +64,8 @@ export default defineConfig({
       items: [
         { text: 'Overview', link: '/protocol/overview' },
         { text: 'Based Rollups', link: '/protocol/based-rollups' },
+        { text: 'Shasta Fork (Current)', link: '/protocol/shasta-fork' },
         { text: 'Pacaya Fork', link: '/protocol/pacaya-fork' },
-        { text: 'Shasta Fork', link: '/protocol/shasta-fork' },
         { text: 'Proving System', link: '/protocol/proving-system' },
         { text: 'Bridging', link: '/protocol/bridging' },
         { text: 'Economics', link: '/protocol/economics' },

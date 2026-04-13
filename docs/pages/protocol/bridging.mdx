@@ -8,7 +8,7 @@ The bridge system consists of three layers:
 
 | Layer | Contracts | Purpose |
 |-------|-----------|---------|
-| **State synchronization** | TaikoInbox (L1), TaikoAnchor (L2) | Keep L1 and L2 world state roots in sync. |
+| **State synchronization** | Inbox (L1), Anchor (L2) | Keep L1 and L2 world state roots in sync. |
 | **Signal service** | SignalService (deployed on both L1 and L2) | Low-level cross-chain message passing via Merkle proofs. |
 | **Bridge and vaults** | Bridge, ERC20Vault, ERC721Vault, ERC1155Vault | High-level asset transfer logic and token management. |
 
@@ -22,8 +22,8 @@ The **Signal Service** is the foundation of cross-chain communication. It is dep
 
 ### How State Roots Stay in Sync
 
-- **L1 state on L2.** Every L2 block includes an `anchor` transaction that stores the corresponding L1 world state root in the TaikoAnchor contract. This happens automatically as part of block construction.
-- **L2 state on L1.** When L2 batches are proved and verified, the L2 world state root is stored in the TaikoInbox contract via `syncChainData`.
+- **L1 state on L2.** Every L2 block includes an `anchor` transaction that stores the corresponding L1 world state root in the L2 Anchor contract. This happens automatically as part of block construction.
+- **L2 state on L1.** When a proposal range is proved on L1 (which finalizes it under Shasta), Inbox writes a checkpoint into the L1 Signal Service committing to the finalized L2 state. There is no separate "verify later" step.
 
 This bidirectional state synchronization enables Merkle proofs to be verified in both directions.
 
@@ -99,10 +99,10 @@ The bridging flow differs in timing depending on the direction:
 | Direction | Process | Timing |
 |-----------|---------|--------|
 | **L1 to L2** | Send on L1 --> relayer or user submits proof on L2 --> assets released on L2. | Relatively fast. The L1 state root is available on L2 as soon as the next L2 block anchors it. |
-| **L2 to L1** | Send on L2 --> wait for batch to be proved and verified on L1 --> submit proof on L1 --> assets released on L1. | Slower. Must wait for the L2 batch containing the message to be proved and verified (proving window + cooldown window). |
+| **L2 to L1** | Send on L2 --> wait for the proposal containing the message to be proved on L1 --> submit the message's Merkle proof on L1 --> assets released on L1. | Slower. Must wait for the proposal containing the message to be proved on L1, which finalizes it under Shasta. |
 
 :::warning
-**L2 to L1 withdrawals require waiting for proof verification.** Under the current configuration, this means the proving window (2 hours) plus the cooldown window (2 hours), for a minimum of approximately 4 hours. ERC20Vault supports solver-based fast withdrawals to mitigate this delay for ERC-20 tokens.
+**L2 to L1 withdrawals wait for proof submission.** Shasta's proving-window target is 4 hours, so expect withdrawals to take at least several hours on the normal path. ERC20Vault supports solver-based fast withdrawals to mitigate this delay for ERC-20 tokens.
 :::
 
 ## Message Claiming: Automatic vs. Manual
