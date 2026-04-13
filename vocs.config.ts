@@ -1,14 +1,5 @@
-import { readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
-import { join } from 'node:path'
 import { defineConfig } from 'vocs'
-
-const siteUrl =
-  process.env.SITE_URL ??
-  (process.env.VERCEL_ENV === 'production' && process.env.VERCEL_PROJECT_PRODUCTION_URL
-    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-    : process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
-      : 'http://localhost:5173')
+import { siteUrl } from './scripts/site-url.mjs'
 
 export default defineConfig({
   title: 'Taiko Docs',
@@ -103,40 +94,16 @@ export default defineConfig({
   vite: {
     plugins: [
       {
-        name: 'docs-site-url',
+        // Dev-server substitution: rewrites __SITE_URL__ in .mdx files at
+        // load time so `pnpm dev` shows http://localhost:5173. The static
+        // build is handled by scripts/substitute-site-url.mjs running after
+        // `vocs build` — this hook is a dev-mode convenience only.
+        name: 'docs-site-url-dev',
         enforce: 'pre',
-        // Dev + HTML/JS builds: substitute at MDX load time.
         transform(code, id) {
           if (!id.includes('.mdx')) return null
           if (!code.includes('__SITE_URL__')) return null
           return { code: code.replaceAll('__SITE_URL__', siteUrl), map: null }
-        },
-        // Prod build only: rewrite the .md / llms-full.txt / llms.txt / search index
-        // that Vocs's llms plugin writes directly to outDir, bypassing Vite's transform.
-        closeBundle() {
-          const outDir = 'docs/dist'
-          const textExts = new Set(['.md', '.txt', '.json', '.html', '.js'])
-          const walk = (dir: string) => {
-            for (const entry of readdirSync(dir)) {
-              const full = join(dir, entry)
-              const stat = statSync(full)
-              if (stat.isDirectory()) {
-                walk(full)
-                continue
-              }
-              const dot = entry.lastIndexOf('.')
-              if (dot < 0) continue
-              if (!textExts.has(entry.slice(dot))) continue
-              const contents = readFileSync(full, 'utf8')
-              if (!contents.includes('__SITE_URL__')) continue
-              writeFileSync(full, contents.replaceAll('__SITE_URL__', siteUrl))
-            }
-          }
-          try {
-            walk(outDir)
-          } catch (e) {
-            // outDir may not exist in some build modes; ignore.
-          }
         },
       },
     ],
