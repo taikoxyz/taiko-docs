@@ -1,15 +1,57 @@
-# Connect to Taiko [Add Taiko to your wallet or dApp.]
+# Connect to Taiko [RPC endpoints, chain IDs, and how to add Taiko to your wallet or dApp.]
 
-:::info
-Prefer Taiko-maintained RPC endpoints that end in `.taiko.xyz`, such as `https://rpc.mainnet.taiko.xyz` and `https://rpc.hoodi.taiko.xyz`.
-:::
+## Network Reference
+
+### Taiko Mainnet (Alethia)
+
+| Field             | Value                                |
+| ----------------- | ------------------------------------ |
+| Network Name      | Taiko Mainnet                        |
+| Chain ID          | `167000`                             |
+| Chain ID (Hex)    | `0x28C58`                            |
+| RPC URL           | `https://rpc.mainnet.taiko.xyz`      |
+| Explorer          | `https://taikoscan.io`               |
+| Explorer API      | `https://api.taikoscan.io/api`       |
+| Bridge            | `https://bridge.taiko.xyz`           |
+| Native Currency   | ETH                                  |
+
+### Taiko Hoodi Testnet
+
+| Field             | Value                                |
+| ----------------- | ------------------------------------ |
+| Network Name      | Taiko Hoodi                          |
+| Chain ID          | `167013`                             |
+| Chain ID (Hex)    | `0x28C65`                            |
+| RPC URL           | `https://rpc.hoodi.taiko.xyz`        |
+| Explorer          | `https://hoodi.taikoscan.io`         |
+| Explorer API      | `https://api-hoodi.taikoscan.io/api` |
+| Bridge            | `https://bridge.hoodi.taiko.xyz`     |
+| Native Currency   | ETH                                  |
+
+### L1 Reference Chains
+
+Taiko settles to Ethereum L1. Use these chain IDs when configuring L1 connections.
+
+| Network            | Chain ID  |
+| ------------------ | --------- |
+| Ethereum Mainnet   | `1`       |
+| Ethereum Hoodi     | `560048`  |
+
+### Summary
+
+| Network              | Chain ID  | RPC                                  | Explorer                        |
+| -------------------- | --------- | ------------------------------------ | ------------------------------- |
+| Taiko Mainnet        | `167000`  | `https://rpc.mainnet.taiko.xyz`      | `https://taikoscan.io`          |
+| Taiko Hoodi Testnet  | `167013`  | `https://rpc.hoodi.taiko.xyz`        | `https://hoodi.taikoscan.io`    |
+| Ethereum Mainnet     | `1`       | Use your preferred Ethereum RPC      | `https://etherscan.io`          |
+| Ethereum Hoodi       | `560048`  | Use your preferred Hoodi RPC         | `https://hoodi.etherscan.io/`   |
 
 ## Prompt mode
 
 Paste this into your coding agent to configure Taiko in one prompt:
 
 ```
-Reference https://taiko-agent-docs.vercel.app/SKILL.md
+Reference __SITE_URL__/SKILL.md
 
 Add Taiko mainnet and Hoodi testnet to my wagmi config.
 Use chain ID 167000 for mainnet and 167013 for testnet.
@@ -89,7 +131,7 @@ Use these JSON params to programmatically prompt users to add Taiko.
 
 ```json [Hoodi Testnet]
 {
-  "chainId": "0x28C75",
+  "chainId": "0x28C65",
   "chainName": "Taiko Hoodi",
   "nativeCurrency": {
     "name": "Ether",
@@ -104,3 +146,9 @@ Use these JSON params to programmatically prompt users to add Taiko.
 :::
 
 ::::
+
+## Bootnodes
+
+Find the bootnodes for the respective chains in the `simple-taiko-node` repo sample `.env` files:
+
+- Repository: [simple-taiko-node](https://github.com/taikoxyz/simple-taiko-node)

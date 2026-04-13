@@ -59,7 +59,7 @@ Taiko is a **based rollup** -- L1 Ethereum validators sequence blocks. There is 
 
 ## Block Time
 
-Block time is **variable**, typically 2--6 seconds. It depends on based preconfirmation timing and L1 block inclusion. Do not hardcode block time assumptions.
+Taiko produces blocks every **2 seconds**, with **1-second block times coming soon**. Block timing is driven by based preconfirmations anchored to L1 inclusion, so don't hardcode exact intervals.
 
 ## Proving System
 
@@ -81,6 +81,16 @@ Taiko uses a **multi-proof system** requiring multiple independent proof types t
 - Taiko uses EIP-1559 for L2 gas pricing.
 - L1 data costs apply for calldata posted to Ethereum.
 - No L1 blob fees (since `BLOBBASEFEE` is unavailable on Taiko L2 itself).
+
+## Account Abstraction (ERC-4337)
+
+Taiko supports **ERC-4337 account abstraction**, enabling smart contract wallets, gas sponsorship, batched user operations, and custom authentication flows.
+
+The singleton EntryPoint contract is deployed on Taiko mainnet at:
+
+`0x4337084D9E255Ff0702461CF8895CE9E3b5Ff108`
+
+Because Taiko is Ethereum-equivalent, standard ERC-4337 tooling (bundlers, paymasters, wallet SDKs) works without modification. Point your bundler at the Taiko RPC and configure the EntryPoint address above. See [Contract Addresses](/network/contract-addresses) for a full list of deployed contracts.
 
 ## Execution Engine Diff
 

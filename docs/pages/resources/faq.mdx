@@ -4,19 +4,19 @@
 
 ### What is Taiko?
 
-Taiko is a **based rollup** on Ethereum with a **type-1 ZK-EVM**. It is fully Ethereum-equivalent at the protocol level, meaning any smart contract or tool that works on Ethereum works on Taiko without modification. Unlike most L2s, Taiko has no centralized sequencer — L1 Ethereum validators sequence L2 blocks, inheriting Ethereum's liveness and censorship resistance.
+Taiko is a **based rollup** on Ethereum with a **type-1 ZK-EVM**. It is fully Ethereum-equivalent at the protocol level, meaning any smart contract or tool that works on Ethereum works on Taiko without modification. Unlike most L2s, Taiko is not operated by a single sequencer — proposal ordering is anchored to Ethereum L1, and the protocol preserves a permissionless fallback for users through forced inclusion.
 
 ### What makes Taiko different from other L2s?
 
 Three things set Taiko apart:
 
-1. **Based sequencing.** There is no centralized sequencer. Anyone can propose blocks, and L1 validators are the ultimate sequencers. This means Taiko inherits Ethereum's decentralization and censorship resistance from day one.
+1. **Based sequencing.** Taiko is not operated by a single sequencer. Proposal ordering is tied to Ethereum L1, and forced inclusion keeps a permissionless fallback open for users. This means Taiko inherits Ethereum's decentralization and censorship resistance guarantees.
 2. **Type-1 EVM equivalence.** Taiko makes zero changes to the Ethereum execution environment — same opcodes, same state model, same gas costs. Contracts deploy to Taiko exactly as they deploy to Ethereum.
 3. **Multi-proof system.** Blocks are verified by multiple independent proof systems (SGX and ZK) that must agree on every state transition. This provides defense in depth: no single proof system is a single point of failure.
 
 ### Does Taiko have a sequencer?
 
-No. Taiko is a **based rollup**, which means anyone can propose L2 blocks permissionlessly. The L1 Ethereum validator for the current slot is the effective sequencer. See [Based Rollups](/protocol/based-rollups) for details.
+Not a single one. Taiko is a **based rollup** — it is not operated by a single sequencer, and proposal ordering is ultimately determined by Ethereum L1. During the current whitelisted preconfirmation rollout, sequencing of block contents is handled by launch-partner preconfers, with forced inclusion preserving a permissionless fallback path for users. See [Based Rollups](/protocol/based-rollups) for details.
 
 ### Is Taiko open source?
 
@@ -62,7 +62,7 @@ The most common cause: **Taiko runs the Shanghai EVM**. Solidity 0.8.24+ default
 evm_version = "shanghai"
 ```
 
-Then build and deploy with `FOUNDRY_PROFILE=taiko forge build`. See [Deploy a Contract](/guides/deploy-a-contract) for the full guide.
+Then build and deploy with `FOUNDRY_PROFILE=taiko forge build`. See [Deploy a Contract](/quickstart/deploy) for the full guide.
 
 ### How can I get the L1 block number from L2?
 
@@ -75,7 +75,7 @@ Query the `TaikoAnchor` contract on L2. This predeployed contract anchors L1 sta
 | Mainnet | `https://rpc.mainnet.taiko.xyz` | `167000` |
 | Hoodi Testnet | `https://rpc.hoodi.taiko.xyz` | `167013` |
 
-The public RPCs are rate-limited. For production use, consider a third-party RPC provider. See [RPC Endpoints](/network/rpc-endpoints) for a full list.
+The public RPCs are rate-limited. For production use, consider a third-party RPC provider. See [Connect to Taiko](/quickstart/connect) for a full list.
 
 ### Can I use Hardhat or Remix instead of Foundry?
 
@@ -89,3 +89,73 @@ Foundry is recommended because it offers the most streamlined deployment and ver
 ### I ran a node on a previous testnet. Do I need to do anything different?
 
 Yes. Previous testnet configurations are no longer valid. Update your node software and switch to Taiko Hoodi. See [Run a Node](/guides/run-a-node) for current instructions.
+
+## Glossary
+
+### Based rollup
+
+A rollup where L1 validators sequence blocks rather than a centralized sequencer. Taiko is a based rollup: it is not operated by a single sequencer, and proposal ordering is determined by Ethereum L1. This inherits Ethereum's liveness and censorship resistance. See [Based Rollups](/protocol/based-rollups).
+
+### Bond
+
+See [Liveness bond](#liveness-bond).
+
+### Bridge
+
+The cross-chain messaging system connecting Ethereum L1 and Taiko L2. The bridge enables transfers of ETH, ERC-20 tokens, ERC-721 tokens, and arbitrary messages between chains. See [Bridging](/protocol/bridging) and [Bridge Tokens](/guides/bridge-tokens).
+
+### ComposeVerifier
+
+A smart contract that orchestrates multi-proof verification. It requires multiple independent proof systems (e.g., sgxReth + sgxGeth) to agree on a proposal range before accepting it as proved. See [Proving System](/protocol/proving-system).
+
+### ERC20Vault
+
+The contract that escrows ERC-20 tokens during cross-chain bridging. When tokens are bridged from L1 to L2, the ERC20Vault locks them on the source chain and a corresponding `BridgedERC20` is minted on the destination chain. See [Bridge Tokens](/guides/bridge-tokens).
+
+### Forced inclusion
+
+A mechanism ensuring that transactions cannot be censored by proposers. If a proposer refuses to include a transaction, the forced inclusion mechanism allows users to submit transactions directly to L1 for guaranteed inclusion in an L2 block.
+
+### Liveness bond
+
+TAIKO tokens deposited by a proposer when submitting a proposal. The bond is returned once the proposal range has been proved (which finalizes it under Shasta). If a proposal is not proved within the proving window, the bond is forfeited. The live Shasta configuration currently runs with a liveness bond of `0`, so this lever is effectively dormant today.
+
+### Preconfirmation
+
+An early guarantee of transaction inclusion from the active preconfer before the proposal is submitted to L1. Preconfirmations reduce the time users wait for transaction confirmation by leveraging the preconfer's commitment to include specific transactions. In the current rollout, preconfers are whitelisted launch partners; a later stage plans to open preconfing to opted-in L1 validators. See [Preconfirmations](/protocol/preconfirmations).
+
+### Proof tier
+
+A category of proof type with associated trust assumptions. Taiko supports multiple proof tiers — for example, SGX proofs (faster, hardware-based trust) and ZK proofs (slower, cryptographic trust). The multi-proof system requires agreement across independent proof types. See [Proving System](/protocol/proving-system).
+
+### Proposer
+
+An entity that submits L2 block data to the `Inbox` contract on L1 as a proposal. Taiko is not operated by a single sequencer; forced inclusion preserves a permissionless path for submitting proposals during the current whitelisted preconfirmation rollout.
+
+### Prover
+
+An entity that generates validity proofs for proposed L2 blocks. Provers must submit a proof within the proving window. Multiple proof types (SGX, ZK) are supported. See [Proving System](/protocol/proving-system).
+
+### SGX proof
+
+A proof generated inside an Intel SGX (Software Guard Extensions) trusted execution environment. SGX proofs are fast to generate but rely on hardware-based trust assumptions — the proof is only as trustworthy as the SGX enclave. They serve as a first line of defense in Taiko's multi-proof system.
+
+### SignalService
+
+The contract that enables cross-chain message verification via Merkle proofs. When a message is sent from one chain, the SignalService stores a signal (hash) that can be verified on the other chain by providing a Merkle proof against the source chain's state root. See [Bridging](/protocol/bridging).
+
+### TaikoAnchor
+
+An L2 predeployed contract that anchors L1 state into L2 blocks. Every L2 block includes a call to TaikoAnchor that records the latest L1 block hash and signal root, enabling L2 contracts to verify L1 state. Located at a fixed L2 address. See [Contract Addresses](/network/contract-addresses).
+
+### TaikoInbox
+
+The L1 contract where proposers submit L2 block data. Under Shasta, the active entry point is `ShastaInbox`, which accepts proposals (each carrying one or more L2 blocks), forwards proofs to the compose verifier, and advances finalization. The legacy Pacaya `TaikoInbox` is preserved for historical reference. See [Contract Addresses](/network/contract-addresses).
+
+### Type-1 ZK-EVM
+
+A zero-knowledge EVM that is fully equivalent to Ethereum at the protocol level. Type-1 means no modifications to the Ethereum architecture — same hash functions, state trees, gas costs, and opcodes. This allows existing Ethereum tooling, contracts, and clients to work without changes.
+
+### ZK proof
+
+A zero-knowledge proof of L2 state transition validity. Taiko supports ZK proofs generated by RISC0 and SP1 proof systems. ZK proofs provide the strongest trust guarantees — they are cryptographically verifiable and do not rely on hardware trust assumptions — but are more computationally expensive to generate than SGX proofs.

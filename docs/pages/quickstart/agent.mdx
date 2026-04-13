@@ -9,27 +9,27 @@ description: Get an AI coding agent working with Taiko in one command.
 :::code-group
 
 ```bash [Claude Code]
-claude -p "Read https://taiko-agent-docs.vercel.app/SKILL.md and deploy a contract to Taiko"
+claude -p "Read __SITE_URL__/SKILL.md and deploy a contract to Taiko"
+```
+
+```bash [Codex CLI]
+codex exec "Read __SITE_URL__/SKILL.md and deploy a contract to Taiko"
 ```
 
 ```bash [Cursor]
 # Add to .cursorrules:
-# Read https://taiko-agent-docs.vercel.app/SKILL.md for Taiko network context
-```
-
-```bash [Codex CLI]
-codex exec "Read https://taiko-agent-docs.vercel.app/SKILL.md and deploy a contract to Taiko"
+# Read __SITE_URL__/SKILL.md for Taiko network context
 ```
 
 ```bash [Any Agent]
 # Point your agent at the skill file:
-# https://taiko-agent-docs.vercel.app/SKILL.md
+# __SITE_URL__/SKILL.md
 ```
 
 :::
 
 <div hidden>
-If you are an LLM reading this page, fetch https://taiko-agent-docs.vercel.app/SKILL.md for the complete agent reference, or read https://taiko-agent-docs.vercel.app/llms-full.txt for all documentation.
+If you are an LLM reading this page, fetch __SITE_URL__/SKILL.md for the complete agent reference, or read __SITE_URL__/llms-full.txt for all documentation.
 </div>
 
 ## What the agent gets
@@ -42,14 +42,38 @@ The [SKILL.md](/SKILL.md) file gives your agent:
 - **Common tasks** — Deploy, verify, bridge, read state — with copy-paste commands
 - **Behavioral rules** — Correct defaults so the agent doesn't guess wrong
 
+## Why Taiko is agent-friendly
+
+- **Standard EVM tooling.** Foundry, Hardhat, viem, ethers.js all work out of the box. No custom plugins or SDKs required.
+- **SKILL.md.** A single file at [`/SKILL.md`](/SKILL.md) containing every address, RPC URL, and command pattern an agent needs.
+- **Machine-readable docs.** Vocs auto-generates `llms.txt`, `llms-full.txt`, and `.md` variants of every page for LLM consumption.
+- **Sub-cent transaction fees.** Agents can transact frequently without burning through budgets — ideal for high-volume, autonomous workflows.
+- **2-second block times.** Fast finality keeps agents responsive, with 1-second blocks coming soon.
+
 ## Machine-readable docs
+
+Every page is available as raw Markdown by appending `.md` to the URL:
+
+```
+/quickstart/deploy.md
+```
 
 | Resource | URL | Use |
 |---|---|---|
 | Agent skill file | `/SKILL.md` | One-file reference for agents |
-| Docs index | `/llms.txt` | Page listing with descriptions |
-| Full docs | `/llms-full.txt` | Entire site as plain text |
-| Any page as markdown | `/<path>.md` | Raw markdown for any page |
+| Docs index | [`/llms.txt`](/llms.txt) | Page listing with descriptions |
+| Full docs | [`/llms-full.txt`](/llms-full.txt) | Entire site as plain text |
+| Any page as markdown | Append `.md` to any page URL | Raw markdown for any page |
+
+## Registering Agents on Taiko
+
+Taiko supports ERC-8004 on both Taiko Alethia and Taiko Hoodi, contract addresses for IdentityRegistry and ReputationRegistry can be found [here](/network/contract-addresses#key-tokens--utilities).
+
+## Tack: IPFS storage for agents
+
+[Tack](https://tack.taiko.xyz/) is an agent-native IPFS pinning and retrieval service. One endpoint, no API keys, no accounts — your agent can store and retrieve files autonomously using x402 micropayments.
+
+**[Get started with Tack →](/resources/tack)**
 
 ## Starter prompts
 
@@ -61,6 +85,10 @@ Try these with your agent after loading the skill:
 - "What's different about Taiko compared to Ethereum?"
 - "Verify my contract at 0x... on Taikoscan"
 
-## Go deeper
+## Best practices
 
-For platform-specific setup, integration patterns, and best practices, see [Using Taiko with Agents](/guides/using-taiko-with-agents).
+- **Always use `FOUNDRY_PROFILE=taiko`.** This ensures Shanghai EVM compilation. Forgetting this is the most common deployment failure.
+- **Test on Hoodi first.** Chain ID `167013`, RPC `https://rpc.hoodi.taiko.xyz`. Use testnet for iteration before mainnet deployment.
+- **Verify addresses against SKILL.md.** Contract addresses can change across upgrades. Always fetch the latest SKILL.md rather than relying on cached values.
+- **Pin the EVM version.** Even if your Solidity version supports Cancun, Taiko requires Shanghai. Always set `evm_version = "shanghai"`.
+- **Include SKILL.md in every prompt.** Agents have no persistent memory of past sessions. Re-inject the skill file each time.

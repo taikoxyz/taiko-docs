@@ -34,7 +34,7 @@ Blocks can be sequenced on top of other sequenced blocks. A preconfer may sequen
 
 ### On-Chain Proposal
 
-At some point during their turn, the preconfer proposes the sequenced blocks on-chain to the TaikoInbox contract in a **batch**. This on-chain proposal confirms the sequenced state and makes the blocks eligible for proving.
+At some point during their turn, the preconfer submits the sequenced blocks on-chain to the Inbox contract as a **proposal**. This on-chain submission confirms the sequenced state and makes the blocks eligible for proving.
 
 From the user's perspective, the on-chain proposal is irrelevant -- they received their transaction receipt when the block was sequenced, potentially seconds earlier.
 
@@ -73,7 +73,7 @@ This stage will make preconfirmation fully permissionless and secured by economi
 3. **Transaction collection.** The preconfer reads transactions from the Taiko L2 public mempool. Transactions with higher L2 priority fees have a better chance of being preconfirmed.
 4. **Block building and propagation.** The preconfer builds L2 blocks and gossips them to the network. This gossip serves as the preconfirmation.
 5. **State sync.** Full nodes verify the preconfer's signature, execute the L2 transactions, and provide users with the latest preconfirmed state.
-6. **L1 inclusion.** The preconfer submits the preconfirmed blocks to the TaikoInbox contract on L1, either through forced inclusion lists in MEV-Boost (if the preconfer is the current slot's proposer) or via the L1 mempool.
+6. **L1 inclusion.** The preconfer submits the preconfirmed blocks to the Inbox contract on L1 as a proposal, either through forced inclusion lists in MEV-Boost (if the preconfer is the current slot's proposer) or via the L1 mempool.
 7. **Slashing.** If a preconfer fails to honor commitments -- by not including preconfirmed transactions or submitting an incorrect lookahead -- they face slashing penalties on their staked collateral.
 
 :::info
@@ -87,7 +87,7 @@ Because preconfers build blocks off-chain, the L2 block time becomes configurabl
 - **Faster block times** (e.g., 500ms) provide better UX but produce more blocks that must be proved and proposed on-chain.
 - **Slower block times** (e.g., 2s) reduce operational costs but increase user-perceived latency.
 
-The batch-based protocol (Pacaya fork) makes this viable by allowing many small blocks to be proposed on-chain in a single batch, keeping L1 gas costs manageable regardless of block frequency.
+Under Shasta, a single on-chain proposal can carry many small blocks, keeping L1 gas costs manageable regardless of block frequency.
 
 ## Benefits
 
@@ -99,4 +99,4 @@ The batch-based protocol (Pacaya fork) makes this viable by allowing many small 
 
 ## Summary
 
-Based preconfirmations bridge the gap between based rollup decentralization and the fast confirmation times users expect. By allowing elected preconfers to sequence blocks off-chain and then propose them on-chain in batches, Taiko achieves sub-second effective confirmation times while preserving its based rollup architecture, censorship resistance guarantees, and Ethereum alignment.
+Based preconfirmations bridge the gap between based rollup decentralization and the fast confirmation times users expect. By allowing elected preconfers to sequence blocks off-chain and then submit them on-chain as Shasta proposals, Taiko achieves sub-second effective confirmation times while preserving its based rollup architecture, censorship resistance guarantees, and Ethereum alignment.

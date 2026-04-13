@@ -1,21 +1,36 @@
-# Bridge Tokens [Bridge ERC-20 tokens from Ethereum to Taiko programmatically.]
+# Bridge Tokens [Move tokens between Ethereum and Taiko.]
 
-## Prompt mode
+Most users should bridge through the official web UI. The programmatic flow below is for scripts and AI agents.
 
-Paste this into your coding agent to bridge tokens in one prompt:
+## Bridge UI
+
+| Network | URL |
+| --- | --- |
+| Mainnet (Taiko Alethia) | [bridge.taiko.xyz](https://bridge.taiko.xyz/) |
+| Testnet (Taiko Hoodi) | [bridge.hoodi.taiko.xyz](https://bridge.hoodi.taiko.xyz/) |
+
+The UI handles approvals, fee estimation, and relay monitoring. On testnet, the sidebar exposes a faucet for test tokens like [HORSE](https://hoodi.etherscan.io/token/0x0a5db5597adc81c871ebd89e81cfa07bdc8fafe3) — fund your wallet with Hoodi L1 ETH from a public Hoodi faucet first.
+
+## Programmatic bridging
+
+Use the flow below only when scripting a bridge transfer or driving it from an agent.
+
+### Agent prompt
+
+Paste this into your coding agent:
 
 ```
-Reference https://taiko-agent-docs.vercel.app/SKILL.md
+Reference __SITE_URL__/SKILL.md
 
-Bridge 100 USDC from Ethereum L1 to Taiko L2.
+Bridge 0.1 WETH from Ethereum L1 to Taiko L2.
 Approve the ERC20Vault, then call sendToken with the BridgeTransferOp struct.
 ```
 
-## Manual mode
+### Manual mode
 
-### Contract addresses
+#### Contract addresses
 
-#### Mainnet (Ethereum L1 to Taiko L2)
+**Mainnet (Ethereum L1 ↔ Taiko Alethia L2)**
 
 | Contract | Address |
 | --- | --- |
@@ -26,23 +41,26 @@ Approve the ERC20Vault, then call sendToken with the BridgeTransferOp struct.
 | L2 ERC20Vault | `0x1670000000000000000000000000000000000002` |
 | L2 SignalService | `0x1670000000000000000000000000000000000005` |
 
-#### Hoodi Testnet (Ethereum Hoodi L1 to Taiko Hoodi L2)
+**Hoodi Testnet (Ethereum Hoodi L1 ↔ Taiko Hoodi L2)**
 
 | Contract | Address |
 | --- | --- |
-| L1 Bridge (Hoodi) | `0x6a4cf607DaC2C4784B7D934Bcb3AD7F2ED18Ed80` |
-| L1 ERC20Vault (Hoodi) | `0x0857cd029937E7a119e492434c71CB9a9Bb59aB0` |
-| L2 Bridge | `0x1670000000000000000000000000000000000001` |
-| L2 ERC20Vault | `0x1670000000000000000000000000000000000002` |
-| L2 SignalService | `0x1670000000000000000000000000000000000005` |
+| L1 Bridge | `0x6a4cf607DaC2C4784B7D934Bcb3AD7F2ED18Ed80` |
+| L1 ERC20Vault | `0x0857cd029937E7a119e492434c71CB9a9Bb59aB0` |
+| L1 SignalService | `0x4c70b7F5E153D497faFa0476575903F9299ed811` |
+| L2 Bridge | `0x1670130000000000000000000000000000000001` |
+| L2 ERC20Vault | `0x1670130000000000000000000000000000000002` |
+| L2 SignalService | `0x1670130000000000000000000000000000000005` |
 
-## Bridge ERC-20 tokens (L1 to L2)
+#### Bridge ERC-20 tokens (L1 → L2)
+
+The mainnet examples below use a generic 18-decimal ERC-20. Adjust `parseUnits` / `--to-wei` for tokens with different decimals (for example, USDC has 6 decimals). For the Hoodi testnet version, see [Testnet example](#testnet-example).
 
 ::::steps
 
 ### Approve the ERC20Vault
 
-The ERC20Vault pulls tokens from your wallet. Approve it to spend the amount you want to bridge.
+The ERC20Vault pulls tokens from your wallet. Approve it for the amount you want to bridge.
 
 :::code-group
 
@@ -81,12 +99,12 @@ Send a `BridgeTransferOp` struct to initiate the bridge.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `destChainId` | `uint64` | Destination chain ID (`167000` for mainnet, `167013` for Hoodi) |
-| `destOwner` | `address` | Token recipient on L2 (usually your own address) |
-| `to` | `address` | Same as `destOwner` for standard transfers |
-| `fee` | `uint64` | Processing fee in wei (set `0` to self-relay) |
+| `destChainId` | `uint64` | Destination chain ID (`167000` for Alethia, `167013` for Hoodi) |
+| `destOwner` | `address` | Message owner on the destination chain (usually your own address) |
+| `to` | `address` | Token recipient on L2 |
+| `fee` | `uint64` | Processing fee in wei paid to the relayer (set `0` to self-relay) |
 | `token` | `address` | L1 token contract address |
-| `gasLimit` | `uint32` | Gas limit for L2 execution (`140000` default) |
+| `gasLimit` | `uint32` | Gas limit for L2 execution (`140000` is a safe default) |
 | `amount` | `uint256` | Token amount in smallest unit |
 
 :::code-group
@@ -108,7 +126,7 @@ const op = {
   amount: ethers.parseUnits("100", 18),
 };
 
-// fee = 0 means self-relay; otherwise send msg.value to cover processing fee
+// fee = 0 means self-relay; otherwise pass msg.value ≥ fee to cover the relayer
 const tx = await vault.sendToken(op, { value: 0 });
 const receipt = await tx.wait();
 console.log("Bridge tx:", receipt.hash);
@@ -126,26 +144,13 @@ cast send 0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab \
 
 ### Wait for relay
 
-After the L1 transaction confirms, the bridge message is relayed to L2. This typically takes 3-5 minutes. Monitor progress on the [Taiko Bridge UI](https://bridge.taiko.xyz) or query the L2 SignalService.
+After the L1 transaction confirms, the bridge message is relayed to L2 — typically within a few minutes. Track progress in the [Bridge UI](https://bridge.taiko.xyz/) or by watching the L2 `SignalService`.
 
 ::::
 
-## Important notes
+#### Testnet example
 
-- **First bridge creates a BridgedERC20.** The first time a token is bridged, Taiko deploys a `BridgedERC20` contract on L2. Subsequent bridges of the same token reuse this contract.
-- **No rebase tokens.** Rebasing tokens (e.g., stETH) are not supported. Use the wrapped version (e.g., wstETH).
-- **Fee-on-transfer tokens.** Tokens that charge a fee on transfer are handled, but the received amount on L2 will reflect the post-fee amount.
-- **Self-relay.** Set `fee` to `0` and relay the message yourself on L2 to avoid paying a processing fee. Use the Bridge UI or call `processMessage` on the L2 Bridge contract.
-- **Known L2 tokens.** Common tokens on Taiko L2:
-
-| Token | L2 Address |
-| --- | --- |
-| WETH | `0xA51894664A773981C6C112C43ce576f315d5b1B6` |
-| USDC | `0x07d83526730c7438048D55A4fc0b850e2aaB6f0b` |
-
-## Testnet
-
-Replace the vault address, rpc url and chain ID for Ethereum Hoodi if bridging L1 to L2:
+Swap in the Hoodi L1 ERC20Vault, a Hoodi L1 RPC, and chain ID `167013`:
 
 ```bash
 cast send 0x0857cd029937E7a119e492434c71CB9a9Bb59aB0 \
@@ -154,3 +159,17 @@ cast send 0x0857cd029937E7a119e492434c71CB9a9Bb59aB0 \
   --rpc-url https://hoodi.ethpandaops.io \
   --private-key $PRIVATE_KEY
 ```
+
+## Notes
+
+- **First bridge deploys a BridgedERC20.** The first time a given L1 token is bridged to L2, Taiko deploys a `BridgedERC20` contract for it. Subsequent bridges reuse the same contract.
+- **Bridged USDC ≠ native USDC.** Bridging L1 USDC through the ERC20Vault produces a BridgedERC20, not Taiko's native USDC (`0x07d83526730c7438048D55A4fc0b850e2aaB6f0b`). For native USDC use [Circle CCTP](https://www.circle.com/cross-chain-transfer-protocol).
+- **No rebase tokens.** Rebasing tokens (e.g., stETH) aren't supported. Use the wrapped version (e.g., wstETH).
+- **Fee-on-transfer tokens.** Supported, but the amount credited on L2 reflects the post-fee balance.
+- **Self-relay.** Setting `fee` to `0` skips the relayer — you finalize the message on L2 yourself via the Bridge UI or by calling `processMessage` on the L2 Bridge.
+- **Common L2 tokens:**
+
+| Token | L2 Address |
+| --- | --- |
+| WETH | `0xA51894664A773981C6C112C43ce576f315d5b1B6` |
+| USDC (native) | `0x07d83526730c7438048D55A4fc0b850e2aaB6f0b` |
