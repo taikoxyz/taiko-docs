@@ -1,12 +1,21 @@
+import * as React from 'react'
 import { defineConfig } from 'vocs'
 import { siteUrl } from './scripts/site-url.mjs'
+
+// Vercel previews and local builds emit `noindex` so they don't compete with
+// the production domain in search.
+const isProdBuild = process.env.VERCEL_ENV === 'production'
 
 export default defineConfig({
   title: 'Taiko Docs',
   titleTemplate: '%s - Taiko',
   description: 'Documentation for Taiko, a based rollup on Ethereum',
 
+  // Vocs populates <base> from this and uses it as %logo in the OG image API.
+  baseUrl: siteUrl,
+
   logoUrl: { dark: '/logo-dark.svg', light: '/logo-light.svg' },
+  iconUrl: '/favicon.svg',
 
   theme: {
     accentColor: { light: '#e81899', dark: '#fc5cb5' },
@@ -22,6 +31,29 @@ export default defineConfig({
 
   font: {
     google: 'Public Sans',
+  },
+
+  // Vocs-hosted dynamic OG image API: renders per-page social cards using
+  // each page's title + description. Object form (not string form) because
+  // Vocs's useOgImageUrl short-circuits on strings in v1.4.1.
+  ogImageUrl: {
+    '/': 'https://vocs.dev/api/og?logo=%logo&title=%title&description=%description',
+  },
+
+  // Per-page <head>: canonical + og:url + twitter completion. Previews get
+  // noindex so they never outrank production.
+  head({ path }) {
+    const url = `${siteUrl}${path}`
+    return (
+      <>
+        <link rel="canonical" href={url} />
+        <meta property="og:url" content={url} />
+        <meta property="og:site_name" content="Taiko Docs" />
+        <meta property="og:locale" content="en_US" />
+        <meta name="twitter:site" content="@taikoxyz" />
+        {!isProdBuild && <meta name="robots" content="noindex, nofollow" />}
+      </>
+    )
   },
 
   socials: [

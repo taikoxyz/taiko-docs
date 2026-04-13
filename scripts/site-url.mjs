@@ -1,4 +1,4 @@
-// Shared site-URL resolution for vocs.config.ts (dev + Vite transform) and
+// Shared site-URL resolution for vocs.config.tsx (dev + Vite transform) and
 // scripts/substitute-site-url.mjs (post-build pass over dist/).
 //
 // Chain: explicit SITE_URL override → Vercel production alias → Vercel branch

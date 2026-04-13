@@ -8,5 +8,5 @@
     "esModuleInterop": true,
     "skipLibCheck": true
   },
-  "include": ["docs/**/*.ts", "docs/**/*.tsx", "vocs.config.ts"]
+  "include": ["docs/**/*.ts", "docs/**/*.tsx", "vocs.config.tsx"]
 }
