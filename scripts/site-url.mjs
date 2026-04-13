@@ -1,6 +1,19 @@
 // Shared site-URL resolution for vocs.config.ts (dev + Vite transform) and
 // scripts/substitute-site-url.mjs (post-build pass over dist/).
 //
+// Keep this token free of Markdown emphasis characters. Vocs serializes the
+// llms markdown after parsing MDX, so a token like __SITE_URL__ can become
+// **SITE_URL** before the post-build pass sees it.
+export const siteUrlPlaceholder = 'SITEURLPLACEHOLDER'
+export const siteUrlTokens = [
+  siteUrlPlaceholder,
+  '__SITE_URL__',
+  'SITE_URL_PLACEHOLDER',
+  'SITE\\_URL\\_PLACEHOLDER',
+  '**SITE\\_URL**',
+  '**SITE_URL**',
+]
+
 // Chain: explicit SITE_URL override → Vercel production alias → Vercel branch
 // URL (stable per branch) → Vercel deployment URL → local dev fallback.
 //
@@ -16,3 +29,6 @@ export const siteUrl =
       : process.env.VERCEL_URL
         ? `https://${process.env.VERCEL_URL}`
         : 'http://localhost:5173')
+
+export const substituteSiteUrl = (contents) =>
+  siteUrlTokens.reduce((value, token) => value.replaceAll(token, siteUrl), contents)

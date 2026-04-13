@@ -9,32 +9,32 @@ description: Get an AI coding agent working with Taiko in one command.
 :::code-group
 
 ```bash [Claude Code]
-claude -p "Read __SITE_URL__/SKILL.md and deploy a contract to Taiko"
+claude -p "Read SITEURLPLACEHOLDER/SKILL.md and deploy a contract to Taiko"
 ```
 
 ```bash [Codex CLI]
-codex exec "Read __SITE_URL__/SKILL.md and deploy a contract to Taiko"
+codex exec "Read SITEURLPLACEHOLDER/SKILL.md and deploy a contract to Taiko"
 ```
 
 ```bash [Cursor]
 # Add to .cursorrules:
-# Read __SITE_URL__/SKILL.md for Taiko network context
+# Read SITEURLPLACEHOLDER/SKILL.md for Taiko network context
 ```
 
 ```bash [Any Agent]
 # Point your agent at the skill file:
-# __SITE_URL__/SKILL.md
+# SITEURLPLACEHOLDER/SKILL.md
 ```
 
 :::
 
 <div hidden>
-If you are an LLM reading this page, fetch __SITE_URL__/SKILL.md for the complete agent reference, or read __SITE_URL__/llms-full.txt for all documentation.
+If you are an LLM reading this page, fetch SITEURLPLACEHOLDER/SKILL.md for the complete agent reference, or read SITEURLPLACEHOLDER/llms-full.txt for all documentation.
 </div>
 
 ## What the agent gets
 
-The [SKILL.md](/SKILL.md) file gives your agent:
+The [SKILL.md](SITEURLPLACEHOLDER/SKILL.md) file gives your agent:
 
 - **Network config** — RPC endpoints, chain IDs, and explorer URLs for mainnet and testnet
 - **Contract addresses** — Bridge, ERC20Vault, SignalService, token contracts on L1 and L2
@@ -45,7 +45,7 @@ The [SKILL.md](/SKILL.md) file gives your agent:
 ## Why Taiko is agent-friendly
 
 - **Standard EVM tooling.** Foundry, Hardhat, viem, ethers.js all work out of the box. No custom plugins or SDKs required.
-- **SKILL.md.** A single file at [`/SKILL.md`](/SKILL.md) containing every address, RPC URL, and command pattern an agent needs.
+- **SKILL.md.** A single file at [`/SKILL.md`](SITEURLPLACEHOLDER/SKILL.md) containing every address, RPC URL, and command pattern an agent needs.
 - **Machine-readable docs.** Vocs auto-generates `llms.txt`, `llms-full.txt`, and `.md` variants of every page for LLM consumption.
 - **Sub-cent transaction fees.** Agents can transact frequently without burning through budgets — ideal for high-volume, autonomous workflows.
 - **2-second block times.** Fast finality keeps agents responsive, with 1-second blocks coming soon.
@@ -60,9 +60,9 @@ Every page is available as raw Markdown by appending `.md` to the URL:
 
 | Resource | URL | Use |
 |---|---|---|
-| Agent skill file | `/SKILL.md` | One-file reference for agents |
-| Docs index | [`/llms.txt`](/llms.txt) | Page listing with descriptions |
-| Full docs | [`/llms-full.txt`](/llms-full.txt) | Entire site as plain text |
+| Agent skill file | [`/SKILL.md`](SITEURLPLACEHOLDER/SKILL.md) | One-file reference for agents |
+| Docs index | [`/llms.txt`](SITEURLPLACEHOLDER/llms.txt) | Page listing with descriptions |
+| Full docs | [`/llms-full.txt`](SITEURLPLACEHOLDER/llms-full.txt) | Entire site as plain text |
 | Any page as markdown | Append `.md` to any page URL | Raw markdown for any page |
 
 ## Registering Agents on Taiko
