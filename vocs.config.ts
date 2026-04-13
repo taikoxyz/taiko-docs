@@ -85,9 +85,8 @@ export default defineConfig({
   ],
 
   topNav: [
-    { text: 'Docs', link: 'https://github.com/taikoxyz/taiko-docs' },
     { text: 'Taiko', link: 'https://taiko.xyz' },
-    { text: 'GitHub', link: 'https://github.com/taikoxyz/taiko-mono' },
+    { text: 'GitHub', link: 'https://github.com/taikoxyz/taiko-docs' },
     { text: 'Bridge', link: 'https://bridge.taiko.xyz' },
   ],
 })
