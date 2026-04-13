@@ -23,7 +23,7 @@ Taiko is a based rollup on Ethereum. "Based" means Ethereum L1 validators sequen
 | Explorer  | `https://taikoscan.io`          | `https://hoodi.taikoscan.io`    |
 | L1        | Ethereum (1)                    | Ethereum Hoodi (560048)         |
 | Currency  | ETH                             | ETH                             |
-| Bridge UI | `https://bridge.taiko.xyz`      | `https://bridge.hoodi.taiko.xyz |
+| Bridge UI | `https://bridge.taiko.xyz`      | `https://bridge.hoodi.taiko.xyz` |
 
 ## How Taiko Differs from Ethereum
 
@@ -81,10 +81,12 @@ Use standard EVM tools. No Taiko-specific SDK or CLI is required.
 - **ethers.js**: `new JsonRpcProvider("https://rpc.mainnet.taiko.xyz")`
 - **cast**: `cast call --rpc-url https://rpc.mainnet.taiko.xyz ...`
 
-For contract verification, use the explorer APIs:
+For contract verification, Taikoscan is served through the Etherscan V2 unified API. The same Etherscan API key works for every chain; the `chainid` query param routes the request.
 
-- Mainnet: `https://api.taikoscan.io/api` (Etherscan-compatible)
-- Testnet: `https://api-hoodi.taikoscan.io/api`
+- Mainnet: `https://api.etherscan.io/v2/api?chainid=167000`
+- Testnet: `https://api.etherscan.io/v2/api?chainid=167013`
+
+The old `api.taikoscan.io/api` / `api-hoodi.taikoscan.io/api` V1 endpoints are deprecated and will return an error.
 
 ## Contract Addresses — Mainnet L1 (Ethereum)
 
@@ -136,25 +138,30 @@ L2 contracts are predeployed at deterministic `0x167013...` addresses:
 ### Deploy a contract
 
 ```bash
-# Using Foundry (recommended) — use the taiko profile to target Shanghai EVM
+# Using Foundry (recommended) — use the taiko profile to target Shanghai EVM.
+# --broadcast is REQUIRED: without it forge create only simulates and nothing deploys.
 FOUNDRY_PROFILE=taiko forge create src/MyContract.sol:MyContract \
   --rpc-url https://rpc.mainnet.taiko.xyz \
   --private-key $PRIVATE_KEY \
+  --broadcast \
   --verify \
   --verifier etherscan \
-  --verifier-url https://api.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY
+  --verifier-url 'https://api.etherscan.io/v2/api?chainid=167000' \
+  --etherscan-api-key $ETHERSCAN_API_KEY
 ```
 
 ### Verify a contract
 
 ```bash
-forge verify-contract $CONTRACT_ADDRESS src/MyContract.sol:MyContract \
-  --chain-id 167000 \
+FOUNDRY_PROFILE=taiko forge verify-contract $CONTRACT_ADDRESS \
+  src/MyContract.sol:MyContract \
   --verifier etherscan \
-  --verifier-url https://api.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY
+  --verifier-url 'https://api.etherscan.io/v2/api?chainid=167000' \
+  --etherscan-api-key $ETHERSCAN_API_KEY \
+  --watch
 ```
+
+Swap `chainid=167000` → `chainid=167013` for Hoodi testnet.
 
 ### Read on-chain state
 
@@ -217,6 +224,6 @@ For the bridge UI: `https://bridge.taiko.xyz` or `https://bridge.hoodi.taiko.xyz
 
 For detailed guides, protocol design, node operation, and more:
 
-- All docs: `https://taiko-agent-docs.vercel.app/llms-full.txt`
-- Docs index: `https://taiko-agent-docs.vercel.app/llms.txt`
-- Web docs: `https://taiko-agent-docs.vercel.app`
+- All docs: `__SITE_URL__/llms-full.txt`
+- Docs index: `__SITE_URL__/llms.txt`
+- Web docs: `__SITE_URL__`
