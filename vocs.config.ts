@@ -7,6 +7,7 @@ export default defineConfig({
   description: 'Documentation for Taiko, a based rollup on Ethereum',
 
   logoUrl: { dark: '/logo-dark.svg', light: '/logo-light.svg' },
+  iconUrl: '/favicon.svg',
 
   theme: {
     accentColor: { light: '#e81899', dark: '#fc5cb5' },
