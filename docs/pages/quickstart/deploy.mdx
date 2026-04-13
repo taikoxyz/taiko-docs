@@ -2,14 +2,15 @@
 
 ## Prompt mode
 
-Paste this into your coding agent to deploy and verify a contract in one prompt:
+Paste this into your coding agent:
 
 ```
 Reference https://taiko-agent-docs.vercel.app/SKILL.md
 
-Deploy and verify src/MyContract.sol on Taiko mainnet.
-Use FOUNDRY_PROFILE=taiko to target Shanghai EVM.
-Verify on Taikoscan with --verifier-url https://api.taikoscan.io/api.
+Write a minimal Counter contract at src/Counter.sol, then deploy and verify
+it on Taiko mainnet. Use FOUNDRY_PROFILE=taiko to target Shanghai EVM and
+verify via the Etherscan V2 endpoint:
+https://api.etherscan.io/v2/api?chainid=167000
 ```
 
 ## Manual mode
@@ -18,30 +19,32 @@ Verify on Taikoscan with --verifier-url https://api.taikoscan.io/api.
 Taiko runs the **Shanghai** EVM. Solidity 0.8.24+ defaults to Cancun and emits opcodes (`TSTORE`, `TLOAD`, `MCOPY`, `BLOBHASH`, `BLOBBASEFEE`) that **do not exist** on Taiko. Always set `evm_version = "shanghai"` or your deployment will revert with no useful error.
 :::
 
-## Prerequisites
+### Prerequisites
 
 - [Foundry](https://book.getfoundry.sh/getting-started/installation) installed
-- ETH on Taiko (bridge from Ethereum L1 or use a faucet for Hoodi — see [Bridge Tokens](/guides/bridge-tokens))
-- [Taikoscan](https://taikoscan.io) API key for contract verification
+- ETH on Taiko (bridge from L1 or use a Hoodi faucet — see [Bridge Tokens](/guides/bridge-tokens))
+- An [Etherscan API key](https://etherscan.io/apis) — the V2 unified key verifies on Taikoscan too
 
-## Configure Foundry
+::::steps
 
-Add a `[profile.taiko]` section to your `foundry.toml`:
+### Scaffold a project
+
+```bash
+forge init hello-taiko && cd hello-taiko
+```
+
+`forge init` generates `src/Counter.sol` — a minimal contract we'll deploy below. If an agent is driving the flow, have it write a contract into `src/` and use that filename instead.
+
+### Configure Foundry
+
+Add a Taiko profile to `foundry.toml`:
 
 ```toml
 [profile.taiko]
 evm_version = "shanghai"
 ```
 
-This ensures every build targeting Taiko uses the correct EVM version.
-
-## Deploy with `forge create`
-
-::::steps
-
-### Build
-
-Compile with the Taiko profile:
+Build with it:
 
 ```bash
 FOUNDRY_PROFILE=taiko forge build
@@ -52,26 +55,30 @@ FOUNDRY_PROFILE=taiko forge build
 :::code-group
 
 ```bash [Mainnet]
-FOUNDRY_PROFILE=taiko forge create src/MyContract.sol:MyContract \
+FOUNDRY_PROFILE=taiko forge create src/Counter.sol:Counter \
   --rpc-url https://rpc.mainnet.taiko.xyz \
   --private-key $PRIVATE_KEY \
+  --broadcast \
   --verify \
   --verifier etherscan \
-  --verifier-url https://api.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY
+  --verifier-url 'https://api.etherscan.io/v2/api?chainid=167000' \
+  --etherscan-api-key $ETHERSCAN_API_KEY
 ```
 
 ```bash [Hoodi Testnet]
-FOUNDRY_PROFILE=taiko forge create src/MyContract.sol:MyContract \
+FOUNDRY_PROFILE=taiko forge create src/Counter.sol:Counter \
   --rpc-url https://rpc.hoodi.taiko.xyz \
   --private-key $PRIVATE_KEY \
+  --broadcast \
   --verify \
   --verifier etherscan \
-  --verifier-url https://api-hoodi.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY
+  --verifier-url 'https://api.etherscan.io/v2/api?chainid=167013' \
+  --etherscan-api-key $ETHERSCAN_API_KEY
 ```
 
 :::
+
+`--broadcast` is required — without it, `forge create` only simulates.
 
 ### Confirm deployment
 
@@ -83,152 +90,34 @@ A non-empty hex response confirms the contract exists on-chain.
 
 ::::
 
-## Deploy with `forge script`
-
-For complex deployments (deterministic addresses, multi-contract, libraries), use a Forge script:
-
-```solidity
-// script/Deploy.s.sol
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
-
-import "forge-std/Script.sol";
-import "../src/MyContract.sol";
-
-contract Deploy is Script {
-    function run() external {
-        vm.startBroadcast();
-        new MyContract();
-        vm.stopBroadcast();
-    }
-}
-```
-
-:::code-group
-
-```bash [Mainnet]
-FOUNDRY_PROFILE=taiko forge script script/Deploy.s.sol \
-  --rpc-url https://rpc.mainnet.taiko.xyz \
-  --private-key $PRIVATE_KEY \
-  --broadcast \
-  --verify \
-  --verifier etherscan \
-  --verifier-url https://api.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY
-```
-
-```bash [Hoodi Testnet]
-FOUNDRY_PROFILE=taiko forge script script/Deploy.s.sol \
-  --rpc-url https://rpc.hoodi.taiko.xyz \
-  --private-key $PRIVATE_KEY \
-  --broadcast \
-  --verify \
-  --verifier etherscan \
-  --verifier-url https://api-hoodi.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY
-```
-
-:::
-
 ## Verify an already-deployed contract
 
-Use `forge verify-contract` to verify a contract after deployment.
-
-### Verification endpoints
-
-| Network | API URL |
-| --- | --- |
-| Mainnet | `https://api.taikoscan.io/api` |
-| Hoodi Testnet | `https://api-hoodi.taikoscan.io/api` |
-
-:::code-group
-
-```bash [Mainnet]
-FOUNDRY_PROFILE=taiko forge verify-contract $CONTRACT_ADDRESS \
-  src/MyContract.sol:MyContract \
-  --verifier etherscan \
-  --verifier-url https://api.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY \
-  --chain-id 167000
-```
-
-```bash [Hoodi Testnet]
-FOUNDRY_PROFILE=taiko forge verify-contract $CONTRACT_ADDRESS \
-  src/MyContract.sol:MyContract \
-  --verifier etherscan \
-  --verifier-url https://api-hoodi.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY \
-  --chain-id 167013
-```
-
-:::
-
-### Check verification status
-
-```bash
-forge verify-check $GUID \
-  --verifier etherscan \
-  --verifier-url https://api.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY \
-  --chain-id 167000
-```
-
-## Constructor arguments
-
-Pass constructor arguments with `forge create`:
-
-```bash
-FOUNDRY_PROFILE=taiko forge create src/MyToken.sol:MyToken \
-  --rpc-url https://rpc.mainnet.taiko.xyz \
-  --private-key $PRIVATE_KEY \
-  --constructor-args "MyToken" "MTK" 18 \
-  --verify \
-  --verifier etherscan \
-  --verifier-url https://api.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY
-```
-
-For complex types, encode arguments with `cast abi-encode`:
-
-```bash
-ARGS=$(cast abi-encode "constructor(address,uint256)" 0xYourAddress 1000000000000000000)
-```
-
-When verifying a contract that was deployed with constructor arguments, pass the same arguments via `--constructor-args`:
+Same V2 URL, with `forge verify-contract`:
 
 ```bash
 FOUNDRY_PROFILE=taiko forge verify-contract $CONTRACT_ADDRESS \
-  src/MyToken.sol:MyToken \
+  src/Counter.sol:Counter \
   --verifier etherscan \
-  --verifier-url https://api.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY \
-  --chain-id 167000 \
-  --constructor-args $ARGS
+  --verifier-url 'https://api.etherscan.io/v2/api?chainid=167000' \
+  --etherscan-api-key $ETHERSCAN_API_KEY \
+  --watch
 ```
 
-For simple types you can also pass them directly:
+Swap `chainid=167000` → `chainid=167013` for Hoodi. `--watch` blocks until Taikoscan returns a final status.
 
-```bash
-FOUNDRY_PROFILE=taiko forge verify-contract $CONTRACT_ADDRESS \
-  src/MyToken.sol:MyToken \
-  --verifier etherscan \
-  --verifier-url https://api.taikoscan.io/api \
-  --etherscan-api-key $TAIKOSCAN_API_KEY \
-  --chain-id 167000 \
-  --constructor-args "MyToken" "MTK" 18
-```
+If your constructor takes arguments, pass them with `--constructor-args` using the same values you deployed with. Encode complex types first: `cast abi-encode "constructor(address,uint256)" 0xYourAddress 1000000000000000000`.
 
 ## Troubleshooting
 
 | Problem | Cause | Fix |
 | --- | --- | --- |
+| `forge create` prints ABI but nothing deploys | Missing `--broadcast` | Add `--broadcast` to the command |
 | Deployment reverts with no error | Wrong EVM version | Set `evm_version = "shanghai"` in `foundry.toml` and rebuild |
 | `EvmError: NotActivated` | Cancun opcode on Shanghai | Same as above — rebuild with `FOUNDRY_PROFILE=taiko` |
 | `insufficient funds` | Not enough ETH on Taiko | Bridge ETH from L1 or use the Hoodi faucet |
+| `deprecated V1 endpoint` | Using `api.taikoscan.io/api` | Switch to `https://api.etherscan.io/v2/api?chainid=167000` |
 | `NOTOK: Unable to verify` | EVM version mismatch | Recompile with `evm_version = "shanghai"` and redeploy |
 | `NOTOK: Already Verified` | Contract is already verified | No action needed — check the explorer |
 | Bytecode mismatch | Compiler version differs | Use the exact `solc` version from your build (check with `forge config`) |
 | Missing constructor args | Args not provided or mis-encoded | Pass `--constructor-args` with the same values used at deploy time |
-| Wrong API URL | Used mainnet URL for testnet or vice versa | Mainnet: `api.taikoscan.io/api` / Testnet: `api-hoodi.taikoscan.io/api` |
-| `Invalid API Key` | Key not set or wrong key | Get a key from [taikoscan.io](https://taikoscan.io) (mainnet) or [hoodi.taikoscan.io](https://hoodi.taikoscan.io) (testnet) |
-| Verification pending | Taikoscan queue delay | Wait a few minutes and check the explorer manually |
+| `Invalid API Key` | Key not set or wrong key | Get an [Etherscan API key](https://etherscan.io/apis) — the V2 key works for all chains |
