@@ -12,13 +12,13 @@ description: Get an AI coding agent working with Taiko in one command.
 claude -p "Read https://taiko-agent-docs.vercel.app/SKILL.md and deploy a contract to Taiko"
 ```
 
+```bash [Codex CLI]
+codex exec "Read https://taiko-agent-docs.vercel.app/SKILL.md and deploy a contract to Taiko"
+```
+
 ```bash [Cursor]
 # Add to .cursorrules:
 # Read https://taiko-agent-docs.vercel.app/SKILL.md for Taiko network context
-```
-
-```bash [Codex CLI]
-codex exec "Read https://taiko-agent-docs.vercel.app/SKILL.md and deploy a contract to Taiko"
 ```
 
 ```bash [Any Agent]
@@ -42,54 +42,13 @@ The [SKILL.md](/SKILL.md) file gives your agent:
 - **Common tasks** — Deploy, verify, bridge, read state — with copy-paste commands
 - **Behavioral rules** — Correct defaults so the agent doesn't guess wrong
 
-## Platform setup
-
-:::code-group
-
-```bash [Claude Code]
-# Add to your project's .claude/commands/taiko.md:
-# ---
-# description: Set up Taiko context
-# ---
-# Fetch https://taiko-agent-docs.vercel.app/SKILL.md and use it as reference
-# for all Taiko deployments. Always use FOUNDRY_PROFILE=taiko.
-
-# Or use it directly in a prompt:
-claude "Read https://taiko-agent-docs.vercel.app/SKILL.md and deploy src/Counter.sol to Taiko mainnet"
-```
-
-```md [Cursor]
-Add to `.cursor/rules`:
-
-When working with Taiko:
-1. Fetch https://taiko-agent-docs.vercel.app/SKILL.md for network config and addresses
-2. Always set evm_version = "shanghai" in foundry.toml
-3. Use FOUNDRY_PROFILE=taiko for all forge commands
-4. Verify contracts with --verifier-url https://api.taikoscan.io/api
-```
-
-```bash [Codex CLI]
-# Pass SKILL.md as context
-codex --context "$(curl -s https://taiko-agent-docs.vercel.app/SKILL.md)" \
-  "Deploy src/Counter.sol to Taiko mainnet and verify it"
-```
-
-```bash [Generic]
-# Any agent that accepts a system prompt or context file:
-# 1. Fetch the skill file
-curl -s https://taiko-agent-docs.vercel.app/SKILL.md > .taiko-context.md
-
-# 2. Include it in your agent's context window
-# 3. Prompt: "Deploy and verify src/MyContract.sol on Taiko mainnet"
-```
-
-:::
-
 ## Why Taiko is agent-friendly
 
 - **Standard EVM tooling.** Foundry, Hardhat, viem, ethers.js all work out of the box. No custom plugins or SDKs required.
 - **SKILL.md.** A single file at [`/SKILL.md`](/SKILL.md) containing every address, RPC URL, and command pattern an agent needs.
 - **Machine-readable docs.** Vocs auto-generates `llms.txt`, `llms-full.txt`, and `.md` variants of every page for LLM consumption.
+- **Sub-cent transaction fees.** Agents can transact frequently without burning through budgets — ideal for high-volume, autonomous workflows.
+- **2-second block times.** Fast finality keeps agents responsive, with 1-second blocks coming soon.
 
 ## Machine-readable docs
 
