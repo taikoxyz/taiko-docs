@@ -97,8 +97,9 @@ For production applications, use a dedicated RPC provider to avoid public rate l
 | Tool | URL | Description |
 | --- | --- | --- |
 | **Taiko x402 Facilitator** | [facilitator.taiko.xyz](https://facilitator.taiko.xyz) | Hosted [x402](https://www.x402.org/) payment backend that verifies and settles pay-per-request API charges on Taiko. Supports mainnet (`eip155:167000`) and Hoodi (`eip155:167013`) — see [`/supported`](https://facilitator.taiko.xyz/supported). |
+| **Tack** | [tack.taiko.xyz](https://tack.taiko.xyz) | Hosted IPFS pinning service that charges per request via x402. No API keys or accounts — agents pay in USDC on Taiko. See [Tack](/resources/tack). |
 
-Point your x402 server implementation at this facilitator URL and it will verify client payment signatures and settle them on-chain — no need to run your own facilitator.
+Point your x402 server implementation at the facilitator URL and it will verify client payment signatures and settle them on-chain — no need to run your own facilitator. Tack is a reference consumer: an IPFS pinning API that accepts x402 payments using that same facilitator.
 
 ## AI Tools
 
