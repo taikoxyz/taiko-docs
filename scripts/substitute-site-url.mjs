@@ -1,4 +1,4 @@
-// Post-build pass that replaces every __SITE_URL__ sentinel in the build
+// Post-build pass that replaces every site URL sentinel in the build
 // output with the resolved siteUrl. Runs after `vocs build` fully exits,
 // so it catches files written by Vite's transform pipeline, Vocs's llms
 // plugin (.md/.txt exports), and Vite's public-dir copy (docs/public/SKILL.md).
@@ -10,7 +10,7 @@
 // See node_modules/vocs/_lib/vite/utils/resolveOutDir.js.
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { siteUrl } from './site-url.mjs'
+import { siteUrl, substituteSiteUrl } from './site-url.mjs'
 
 const outDir = process.env.VERCEL ? '.vercel/output/static' : 'docs/dist'
 if (!existsSync(outDir)) {
@@ -30,8 +30,9 @@ const walk = (dir) => {
     const dot = entry.lastIndexOf('.')
     if (dot < 0 || !textExts.has(entry.slice(dot))) continue
     const contents = readFileSync(full, 'utf8')
-    if (!contents.includes('__SITE_URL__')) continue
-    writeFileSync(full, contents.replaceAll('__SITE_URL__', siteUrl))
+    const next = substituteSiteUrl(contents)
+    if (next === contents) continue
+    writeFileSync(full, next)
     replaced += 1
   }
 }

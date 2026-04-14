@@ -224,6 +224,6 @@ For the bridge UI: `https://bridge.taiko.xyz` or `https://bridge.hoodi.taiko.xyz
 
 For detailed guides, protocol design, node operation, and more:
 
-- All docs: `__SITE_URL__/llms-full.txt`
-- Docs index: `__SITE_URL__/llms.txt`
-- Web docs: `__SITE_URL__`
+- All docs: `SITEURLPLACEHOLDER/llms-full.txt`
+- Docs index: `SITEURLPLACEHOLDER/llms.txt`
+- Web docs: `SITEURLPLACEHOLDER`
