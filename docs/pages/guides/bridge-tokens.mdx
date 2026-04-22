@@ -6,7 +6,7 @@ Most users should bridge through the official web UI. The programmatic flow belo
 
 | Network | URL |
 | --- | --- |
-| Mainnet (Taiko Alethia) | [bridge.taiko.xyz](https://bridge.taiko.xyz/) |
+| Mainnet (Taiko) | [bridge.taiko.xyz](https://bridge.taiko.xyz/) |
 | Testnet (Taiko Hoodi) | [bridge.hoodi.taiko.xyz](https://bridge.hoodi.taiko.xyz/) |
 
 The UI handles approvals, fee estimation, and relay monitoring. On testnet, the sidebar exposes a faucet for test tokens like [HORSE](https://hoodi.etherscan.io/token/0x0a5db5597adc81c871ebd89e81cfa07bdc8fafe3) — fund your wallet with Hoodi L1 ETH from a public Hoodi faucet first.
@@ -30,7 +30,7 @@ Approve the ERC20Vault, then call sendToken with the BridgeTransferOp struct.
 
 #### Contract addresses
 
-**Mainnet (Ethereum L1 ↔ Taiko Alethia L2)**
+**Mainnet (Ethereum L1 ↔ Taiko L2)**
 
 | Contract | Address |
 | --- | --- |
@@ -99,7 +99,7 @@ Send a `BridgeTransferOp` struct to initiate the bridge.
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `destChainId` | `uint64` | Destination chain ID (`167000` for Alethia, `167013` for Hoodi) |
+| `destChainId` | `uint64` | Destination chain ID (`167000` for Taiko, `167013` for Hoodi) |
 | `destOwner` | `address` | Message owner on the destination chain (usually your own address) |
 | `to` | `address` | Token recipient on L2 |
 | `fee` | `uint64` | Processing fee in wei paid to the relayer (set `0` to self-relay) |
