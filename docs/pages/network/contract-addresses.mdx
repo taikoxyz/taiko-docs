@@ -29,11 +29,9 @@ The live rollup: proposal inbox, preconfirmation routing, address resolvers, and
 | --------------------- | -------------------------------------------- |
 | ShastaInbox (proxy)   | `0x6f21C543a4aF5189eBdb0723827577e1EF57ef1f` |
 | PreconfWhitelist      | `0xFD019460881e6EeC632258222393d5821029b2ac` |
-| PreconfRouter         | `0xD5AA0e20e8A6e9b04F080Cf8797410fafAa9688a` |
 | RollupAddressResolver | `0x5A982Fb1818c22744f5d7D36D0C4c9f61937b33a` |
 | SharedResolver        | `0x8Efa01564425692d0a0838DC10E300BD310Cb43e` |
 | ProverWhitelist       | `0xEa798547d97e345395dA071a0D7ED8144CD612Ae` |
-| SignalServiceForkRouter    | `0x6a4B15E4b0296B2ECE03Ee9Ed74E4A3E3ECA68D6` |
 | MainnetVerifier (impl)     | `0x9cAa4948381590900FCdd8a4F06EB24138eD665d` |
 | SgxVerifierReth (impl)     | `0xa1018Ba2e22139076f91dA2A856B2CAB22d968F6` |
 | SgxVerifierGeth (impl)     | `0x08568Df252ecf37D6C3eFD24f6ca3688118697F1` |
@@ -41,9 +39,9 @@ The live rollup: proposal inbox, preconfirmation routing, address resolvers, and
 | SP1Verifier (impl)         | `0x96337327648dcFA22b014009cf10A2D5E2F305f6` |
 
 <details>
-<summary>Legacy (Pacaya fork)</summary>
+<summary>Legacy</summary>
 
-Contracts from the previous **Pacaya** fork, superseded by Shasta. Kept here for historical reference and for any integrations still reading from the old inbox.
+Legacy Contracts that have since been deprecated from the protocol. Kept here for historical reference and for any integrations still reading from the old inbox.
 
 | Contract              | Proxy Address                                |
 | --------------------- | -------------------------------------------- |
@@ -61,6 +59,8 @@ Contracts from the previous **Pacaya** fork, superseded by Shasta. Kept here for
 | TierSgx                 | `0xb0f3186FC1963f774f52ff455DC86aEdD0b31F81` |
 | TierRisc0               | `0x55902b2D3DF2A65370A89C86Ae9dd71Ecd508edc` |
 | TierSP1                 | `0x5c44f2239925b0d86d2BFEe539f19CD0A08Af452` |
+| SignalServiceForkRouter    | `0x6a4B15E4b0296B2ECE03Ee9Ed74E4A3E3ECA68D6` |
+| PreconfRouter         | `0xD5AA0e20e8A6e9b04F080Cf8797410fafAa9688a` |
 
 </details>
 
@@ -72,9 +72,7 @@ Contracts from the previous **Pacaya** fork, superseded by Shasta. Kept here for
 | ---------------------------- | -------------------------------------------- |
 | TaikoAnchor                  | `0x1670000000000000000000000000000000010001` |
 | RollupAddressManager         | `0x1670000000000000000000000000000000010002` |
-| AnchorForkRouter (impl)      | `0x38e4A497aD70aa0581BAc29747b0Ea7a53258585` |
 | AnchorImpl (impl)            | `0x7e83Af941FDcf90EB44ED7dc8754a201B156E0BA` |
-| SignalServiceForkRouter      | `0x2987F6Bef39b03F8522EC38B36aF0f7422938EAb` |
 | SignalServiceImpl            | `0x18B27428cce679DFf84D09D6b07DF1E9EBb6fE28` |
 
 ### Bridge & Messaging
@@ -106,14 +104,16 @@ Predeployed at deterministic `0x167000...` addresses.
 | ERC8004 ReputationRegistry | `0x8004BAa17C55a88189AE136b182e5fdA19dE9b63`                                              |
 
 <details>
-<summary>Legacy (Pacaya fork)</summary>
+<summary>Legacy</summary>
 
-Resolvers from the previous **Pacaya** fork, superseded by the Shasta resolvers above.
+Legacy Contracts that have since been deprecated from the protocol. Kept here for historical reference and for any integrations still reading from the old inbox.
 
 | Contract              | Proxy Address                                |
 | --------------------- | -------------------------------------------- |
 | SharedResolver        | `0xc32277f541bBADAA260337E71Cea53871D310DC8` |
 | RollupResolver        | `0x73251237d8F1B99e9966bB054722F3446195Ea56` |
+| AnchorForkRouter (impl)      | `0x38e4A497aD70aa0581BAc29747b0Ea7a53258585` |
+| SignalServiceForkRouter      | `0x2987F6Bef39b03F8522EC38B36aF0f7422938EAb` |
 
 </details>
 
@@ -137,14 +137,13 @@ Resolvers from the previous **Pacaya** fork, superseded by the Shasta resolvers 
 | --------------------- | -------------------------------------------- |
 | ShastaInbox           | `0xeF4bB7A442Bd68150A3aa61A6a097B86b91700BF` |
 | PreconfWhitelist      | `0x8B969Fcf37122bC5eCB4E0e5Ad65CEEC3f1393ba` |
-| PreconfRouter         | `0xCD15bdEc91BbD45E56D81b4b76d4f97f5a84e555` |
 | ProverWhitelist       | `0xa9a84b6667A2c60BFdE8c239918d0d9a11c77E89` |
 | RollupAddressResolver | `0x0d006d8d394dD69fAfEfF62D21Fc03E7F50eDaF4` |
 
 <details>
-<summary>Legacy (Pacaya fork)</summary>
+<summary>Legacy</summary>
 
-Contracts from the previous **Pacaya** fork, superseded by Shasta.
+Legacy Contracts that have since been deprecated from the protocol. Kept here for historical reference and for any integrations still reading from the old inbox.
 
 | Contract             | Proxy Address                                |
 | -------------------- | -------------------------------------------- |
@@ -156,6 +155,7 @@ Contracts from the previous **Pacaya** fork, superseded by Shasta.
 | SgxGethVerifier      | `0xCdBB6C1751413e78a40735b6D9Aaa7D55e8c038e` |
 | Risc0RethVerifier    | `0xbf285Dd2FD56BF4893D207Fba4c738D1029edFfd` |
 | SP1RethVerifier      | `0x3B3bb4A1Cb8B1A0D65F96a5A93415375C039Eda3` |
+| PreconfRouter         | `0xCD15bdEc91BbD45E56D81b4b76d4f97f5a84e555` |
 
 </details>
 
