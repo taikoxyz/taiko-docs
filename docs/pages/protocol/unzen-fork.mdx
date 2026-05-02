@@ -1,6 +1,6 @@
-# Uzen Fork [Protocol fork introducing block-level zk gas metering.]
+# Unzen Fork [Protocol fork introducing block-level zk gas metering.]
 
-Uzen introduces **zk gas** as a protocol-level budget for proving work. Instead of limiting blocks only by ordinary EVM gas, Uzen adds a separate weighted gas metric that reflects how expensive different opcodes and precompiles are to prove.
+Unzen introduces **zk gas** as a protocol-level budget for proving work. Instead of limiting blocks only by ordinary EVM gas, Unzen adds a separate weighted gas metric that reflects how expensive different opcodes and precompiles are to prove.
 
 The objective is to cap proving time per block with a protocol constant, `BLOCK_ZK_GAS_LIMIT`, so a block cannot be valid if it would require more proving work than the protocol budget allows.
 
@@ -9,7 +9,7 @@ For the source protocol details, see the upstream [ZK Gas specification](https:/
 
 ## Block-Level ZK Gas Limit
 
-Uzen defines `BLOCK_ZK_GAS_LIMIT` as the maximum cumulative zk gas allowed in a block.
+Unzen defines `BLOCK_ZK_GAS_LIMIT` as the maximum cumulative zk gas allowed in a block.
 
 The initial specification sets:
 
@@ -32,7 +32,7 @@ This makes the zk gas limit a block validity constraint rather than a mempool po
 
 `zk gas` is calculated by multiplying normal EVM gas spent by a proving-cost multiplier.
 
-For ordinary opcodes, Uzen meters each opcode execution as:
+For ordinary opcodes, Unzen meters each opcode execution as:
 
 ```text
 zk_gas += step_gas * opcode_multiplier[opcode]
@@ -68,12 +68,12 @@ This keeps heavyweight precompiles such as `modexp`, point evaluation, BLAKE2F, 
 
 Spawn opcodes need special handling because they can create child execution frames and pre-charge parent gas with a child execution budget.
 
-If Uzen used the observed parent opcode gas delta directly, the same child execution path could be counted twice:
+If Unzen used the observed parent opcode gas delta directly, the same child execution path could be counted twice:
 
 - once through the parent's forwarded gas budget
 - once through the child frame's actual opcode and precompile execution
 
-Uzen avoids this by using fixed raw-gas estimates for spawn opcodes whenever a child frame is created or a precompile is invoked.
+Unzen avoids this by using fixed raw-gas estimates for spawn opcodes whenever a child frame is created or a precompile is invoked.
 
 | Opcode | Estimated raw gas |
 | --- | ---: |
