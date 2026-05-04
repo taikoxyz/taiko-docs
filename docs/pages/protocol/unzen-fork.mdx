@@ -7,6 +7,17 @@ The objective is to cap proving time per block with a protocol constant, `BLOCK_
 For the source protocol details, see the upstream [ZK Gas specification](https://github.com/taikoxyz/taiko-mono/blob/main/packages/protocol/docs/zk_gas_spec.md).
 
 
+## EVM Version: Osaka
+
+Unzen targets the **Osaka** EVM version. This will make the Cancun, Prague, and Osaka execution-layer features available to contracts.
+
+The main contract-facing additions are:
+
+- Cancun opcodes: `TSTORE`, `TLOAD`, `MCOPY`, `BLOBHASH`, and `BLOBBASEFEE`
+- Prague precompiles: BLS12-381 operations at addresses `0x0b` through `0x11`
+- Osaka opcode: `CLZ` (`0x1e`), exposed by Solidity inline assembly as `clz`
+- Osaka precompile: `P256VERIFY` for secp256r1 signature verification at address `0x100`
+
 ## Block-Level ZK Gas Limit
 
 Unzen defines `BLOCK_ZK_GAS_LIMIT` as the maximum cumulative zk gas allowed in a block.
