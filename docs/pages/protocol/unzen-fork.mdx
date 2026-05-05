@@ -1,11 +1,10 @@
-# Unzen Fork [Protocol fork introducing block-level zk gas metering.]
+# Unzen Fork [Upcoming protocol fork introducing block-level zk gas metering.]
 
-Unzen introduces **zk gas** as a protocol-level budget for proving work. Instead of limiting blocks only by ordinary EVM gas, Unzen adds a separate weighted gas metric that reflects how expensive different opcodes and precompiles are to prove.
+Unzen is an upcoming fork that introduces **zk gas** as a protocol-level budget for proving work. Instead of limiting blocks only by ordinary EVM gas, Unzen adds a separate weighted gas metric that reflects how expensive different opcodes and precompiles are to prove.
 
 The objective is to cap proving time per block with a protocol constant, `BLOCK_ZK_GAS_LIMIT`, so a block cannot be valid if it would require more proving work than the protocol budget allows.
 
 For the source protocol details, see the upstream [ZK Gas specification](https://github.com/taikoxyz/taiko-mono/blob/main/packages/protocol/docs/zk_gas_spec.md).
-
 
 ## EVM Version: Osaka
 
