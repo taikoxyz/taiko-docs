@@ -326,18 +326,18 @@ Copy `jwt.txt` into both the execution engine and `taiko-client` directories, or
   --metrics.addr "0.0.0.0" \
   --bootnodes enode://eb5079aae185d5d8afa01bfd2d349da5b476609aced2b57c90142556cf0ee4a152bcdd724627a7de97adfc2a68af5742a8f58781366e6a857d4bde98de6fe986@34.44.53.195:30303,enode://b054002f068f30568aad39271462c053463edb4a3d3c19b71b475fa044805d7e2fda39c482eba183f9d1f76fb579a8e47c0c054bb819c2bbcb331c0aac7464c2@34.27.167.246:30303 \
   --authrpc.addr "0.0.0.0" \
-  --authrpc.port 28551 \
+  --authrpc.port 8551 \
   --authrpc.vhosts "*" \
   --authrpc.jwtsecret ./jwt.txt \
   --http \
   --http.api admin,debug,eth,net,web3,txpool,miner,taiko \
   --http.addr "0.0.0.0" \
-  --http.port 28545 \
+  --http.port 8545 \
   --http.vhosts "*" \
   --ws \
   --ws.api admin,debug,eth,net,web3,txpool,miner,taiko \
   --ws.addr "0.0.0.0" \
-  --ws.port 28546 \
+  --ws.port 8546 \
   --ws.origins "*" \
   --gpo.ignoreprice "100000000" \
   --port 30304 \
@@ -383,13 +383,6 @@ export L1_WS=<your-l1-ws-endpoint>
 export L1_BEACON_URL=<your-l1-beacon-http-endpoint>
 ```
 
-For Hoodi testnet, use the same driver command with the L2 endpoints that match the execution engine you started:
-
-| Execution engine | `L2_WS` | `L2_AUTH` |
-| --- | --- | --- |
-| `alethia-reth` | `ws://localhost:8546` | `http://localhost:8551` |
-| `taiko-geth` | `ws://localhost:28546` | `http://localhost:28551` |
-
 :::code-group
 
 ```bash [Mainnet]
@@ -421,14 +414,11 @@ For Hoodi testnet, use the same driver command with the L2 endpoints that match 
 ```
 
 ```bash [Hoodi Testnet]
-export L2_WS=<execution-engine-ws-endpoint>
-export L2_AUTH=<execution-engine-auth-endpoint>
-
 ./bin/taiko-client driver \
   --l1.ws ${L1_WS} \
-  --l2.ws ${L2_WS} \
+  --l2.ws ws://localhost:8546 \
   --l1.beacon ${L1_BEACON_URL} \
-  --l2.auth ${L2_AUTH} \
+  --l2.auth http://localhost:8551 \
   --inbox 0xeF4bB7A442Bd68150A3aa61A6a097B86b91700BF \
   --taikoAnchor 0x1670130000000000000000000000000000010001 \
   --verbosity 3 \
