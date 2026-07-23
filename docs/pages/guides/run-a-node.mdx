@@ -2,10 +2,10 @@
 
 ## Architecture
 
-Taiko nodes still follow Ethereum's execution/consensus split, but in the Shasta architecture the consensus side is driven by Taiko's L1 inbox, proposal derivation rules, and L2 anchoring logic instead of an Ethereum beacon chain. The two main components are:
+Taiko nodes still follow Ethereum's execution/consensus split, but in the Shasta architecture the consensus side is driven by Taiko's L1 inbox, proposal derivation rules, and L2 anchoring logic instead of an Ethereum beacon chain. The main components are:
 
-- [`taiko-geth`](https://github.com/taikoxyz/taiko-geth) — a minimally modified fork of `go-ethereum` that serves as the primary **execution client**. It executes L2 blocks, maintains chain state, and exposes standard Ethereum JSON-RPC interfaces.
-- [`alethia-reth`](https://github.com/taikoxyz/alethia-reth) — a new Reth-based alternate execution client available in `simple-taiko-node` for Hoodi testnet nodes. It exposes the same JSON-RPC, WebSocket, metrics, and Engine API surfaces that `taiko-client` expects.
+- [`alethia-reth`](https://github.com/taikoxyz/alethia-reth) — the default Reth-based **execution client** in `simple-taiko-node` for Unzen. It executes L2 blocks, maintains chain state, and exposes the JSON-RPC, WebSocket, metrics, and Engine API surfaces that `taiko-client` expects.
+- [`taiko-geth`](https://github.com/taikoxyz/taiko-geth) — a minimally modified fork of `go-ethereum` that remains available as the geth-based execution client.
 - [`taiko-client`](https://github.com/taikoxyz/taiko-mono/tree/main/packages/taiko-client) — the **consensus and rollup driver**. It watches the Shasta inbox on L1, derives L2 blocks from proposal data, tracks finalization, and drives the selected execution client through the Engine API.
 
 In Shasta, the protocol no longer upgrades the old Pacaya inbox in place. It uses a separate **Shasta Inbox** on L1 for proposing, proving, forced inclusion, and finalization, while the L2 side uses the **TaikoAnchor** plus fork-router contracts to keep pre-fork and post-fork behavior compatible during the transition.
@@ -86,7 +86,7 @@ To prove blocks older than 128 blocks, your L1 node must be an archive node.
 ```bash
 git clone https://github.com/taikoxyz/simple-taiko-node.git
 cd simple-taiko-node
-```
+git checkout <release-tag>
 
 On Windows, also run `git config core.autocrlf false` after cloning.
 
@@ -124,7 +124,11 @@ In `.env`, set `COMPOSE_PROFILES` to the execution client profile you wish to us
 :::code-group
 
 ```bash [Mainnet]
-COMPOSE_PROFILES=l2_execution_engine
+COMPOSE_PROFILES=reth_execution_engine
+```
+
+```bash [Mainnet - taiko-geth]
+COMPOSE_PROFILES=geth_execution_engine
 ```
 
 ```bash [Hoodi Testnet - alethia-reth]
@@ -137,11 +141,9 @@ COMPOSE_PROFILES=geth_execution_engine
 
 :::
 
-For Hoodi, `reth_execution_engine` runs `alethia-reth` and is the default in `.env.sample.hoodi`. Use `geth_execution_engine` only if you want to run `taiko-geth` instead. Choose exactly one execution client profile; both profiles expose the same internal `l2_execution_engine` alias for `taiko-client`.
+In `simple-taiko-node`, `reth_execution_engine` runs `alethia-reth` and is the default profile for both mainnet and Hoodi. Use `geth_execution_engine` only if you want to run `taiko-geth` instead. Choose exactly one execution client profile; both profiles expose the same internal `l2_execution_engine` alias for `taiko-client`.
 
-If you run Hoodi with `alethia-reth`, you can also set `L2_RETH_DATA_DIR` in `.env` to point at an extracted snapshot directory. If unset, Docker uses the `l2_execution_engine_data` volume.
-
-You may download the most recent publicly hosted snapshot for `alethia-reth` at https://snapshots.taiko.xyz/.
+If you run `alethia-reth`, you can set `L2_RETH_DATA_DIR` in `.env` to point at an extracted snapshot directory. If unset, Docker uses the `l2_execution_engine_data` volume. You may download the most recent publicly hosted snapshot for `alethia-reth` at https://snapshots.taiko.xyz/.
 
 ### Configure preconfirmations (recommended)
 
@@ -233,7 +235,7 @@ If `peersLen` is 6 or higher, P2P is working correctly.
 
 A Taiko node has two components:
 
-- **Execution engine** — use `taiko-geth` on mainnet or either `taiko-geth` or `alethia-reth` on Hoodi testnet. It executes block payloads, holds chain state, and exposes the standard Ethereum JSON-RPC API.
+- **Execution engine** — use `alethia-reth` by default on mainnet and Hoodi testnet, or `taiko-geth` if you need the geth-based client. It executes block payloads, holds chain state, and exposes the standard Ethereum JSON-RPC API.
 - **taiko-client** (consensus client) — decodes L2 blocks from L1 calldata/blobspace and passes payloads to the execution engine.
 
 ::::steps
@@ -244,18 +246,18 @@ Choose the execution engine you want to run. Check out the matching release from
 
 :::code-group
 
-```bash [taiko-geth]
-git clone https://github.com/taikoxyz/taiko-geth.git
-cd taiko-geth
-git checkout <release-branch>
-make geth
-```
-
 ```bash [alethia-reth]
 git clone https://github.com/taikoxyz/alethia-reth.git
 cd alethia-reth
 git checkout <release-tag>
 cargo build --release
+```
+
+```bash [taiko-geth]
+git clone https://github.com/taikoxyz/taiko-geth.git
+cd taiko-geth
+git checkout <release-branch>
+make geth
 ```
 
 :::
@@ -285,7 +287,32 @@ Copy `jwt.txt` into both the execution engine and `taiko-client` directories, or
 
 :::code-group
 
-```bash [Mainnet]
+```bash [Mainnet - alethia-reth]
+mkdir -p ./data/alethia-reth
+./target/release/alethia-reth node \
+  --chain mainnet \
+  --datadir ./data/alethia-reth \
+  --http \
+  --http.addr 0.0.0.0 \
+  --http.port 8545 \
+  --http.api eth,net,debug,trace,rpc \
+  --ws \
+  --ws.addr 0.0.0.0 \
+  --ws.port 8546 \
+  --metrics 0.0.0.0:6060 \
+  --color never \
+  --enable-discv5-discovery \
+  --engine.persistence-threshold 128 \
+  --engine.memory-block-buffer-target 128 \
+  --rpc.eth-proof-window 1209600 \
+  --authrpc.addr 0.0.0.0 \
+  --authrpc.port 8551 \
+  --authrpc.jwtsecret ./jwt.txt \
+  --ipcpath ./data/alethia-reth/reth.ipc \
+  --bootnodes "enode://266a8e3b5e44201eca9c368d58aa59a7750295397e77d5b32aea2644f9962cbc4e1cb0543aab0480995a209408174413f65e5ce253d60bb83d22d3b8ab12eb89@34.142.239.251:30303,enode://264a7fc4bd1ee16cfc6eb420c643407bfc61b9c9534c5a39ba6e68c8759beda2fbeccefee8677385e3d99691eeb218da4bce7f5207cf38594ac0f6a53c128b9b@35.247.159.156:30303,enode://2d4e5b7ec0c57f9def6ebe72f9bd1f65c33c87b7dc38875bbb147c10e8ec9a8cd157558b695f9a02ac6ad789f300fab4f1f19d41273956491372e96880a3459f@34.126.90.255:30303,enode://57f4b29cd8b59dc8db74be51eedc6425df2a6265fad680c843be113232bbe632933541678783c2a5759d65eac2e2241c45a34e1c36254bccfe7f72e52707e561@104.197.107.1:30303,enode://87a68eef46cc1fe862becef1185ac969dfbcc050d9304f6be21599bfdcb45a0eb9235d3742776bc4528ac3ab631eba6816e9b47f6ee7a78cc5fcaeb10cd32574@35.232.246.122:30303,enode://d94d78fa9c3be00d403788bcbcbfe7f99efb8db26b04b38100f520a38ee40a29b5f6b7ab01e4f8908e0683d3153fa840264500bc72c114c08b0eb770b6ce52f5@34.126.181.0:30303,enode://27384375dbbfd8af5df71392fceb01b93cef1f674e4884fb481be145426f9ce5706941fd93928101a3079a52e621d8a42d266ab9165f4f960233adce22e905f8@34.21.195.34:30303"
+```
+
+```bash [Mainnet - taiko-geth]
 ./build/bin/geth \
   --taiko \
   --networkid 167000 \
@@ -296,21 +323,22 @@ Copy `jwt.txt` into both the execution engine and `taiko-client` directories, or
   --metrics.addr "0.0.0.0" \
   --bootnodes enode://266a8e3b5e44201eca9c368d58aa59a7750295397e77d5b32aea2644f9962cbc4e1cb0543aab0480995a209408174413f65e5ce253d60bb83d22d3b8ab12eb89@34.142.239.251:30303,enode://264a7fc4bd1ee16cfc6eb420c643407bfc61b9c9534c5a39ba6e68c8759beda2fbeccefee8677385e3d99691eeb218da4bce7f5207cf38594ac0f6a53c128b9b@35.247.159.156:30303,enode://2d4e5b7ec0c57f9def6ebe72f9bd1f65c33c87b7dc38875bbb147c10e8ec9a8cd157558b695f9a02ac6ad789f300fab4f1f19d41273956491372e96880a3459f@34.126.90.255:30303,enode://57f4b29cd8b59dc8db74be51eedc6425df2a6265fad680c843be113232bbe632933541678783c2a5759d65eac2e2241c45a34e1c36254bccfe7f72e52707e561@104.197.107.1:30303,enode://87a68eef46cc1fe862becef1185ac969dfbcc050d9304f6be21599bfdcb45a0eb9235d3742776bc4528ac3ab631eba6816e9b47f6ee7a78cc5fcaeb10cd32574@35.232.246.122:30303 \
   --authrpc.addr "0.0.0.0" \
-  --authrpc.port 28551 \
+  --authrpc.port 8551 \
   --authrpc.vhosts "*" \
   --authrpc.jwtsecret ./jwt.txt \
   --http \
-  --http.api admin,debug,eth,net,web3,txpool,miner,taiko \
+  --http.api debug,eth,net,web3,txpool,taiko \
   --http.addr "0.0.0.0" \
-  --http.port 28545 \
+  --http.port 8545 \
   --http.vhosts "*" \
   --ws \
-  --ws.api admin,debug,eth,net,web3,txpool,miner,taiko \
+  --ws.api debug,eth,net,web3,txpool,taiko \
   --ws.addr "0.0.0.0" \
-  --ws.port 28546 \
+  --ws.port 8546 \
   --ws.origins "*" \
-  --gpo.ignoreprice "100000000" \
-  --port 30304 \
+  --gpo.ignoreprice "25000000" \
+  --port 30306 \
+  --discovery.port 30306 \
   --syncmode full \
   --state.scheme=path
 ```
@@ -346,7 +374,7 @@ Copy `jwt.txt` into both the execution engine and `taiko-client` directories, or
 ```
 
 ```bash [Hoodi Testnet - alethia-reth]
-mkdir -p /data/alethia-reth
+mkdir -p ./data/alethia-reth
 ./target/release/alethia-reth node \
   --chain taiko-hoodi \
   --datadir ./data/alethia-reth \
@@ -379,8 +407,10 @@ Start the execution engine first. It will wait for taiko-client to connect.
 Set your L1 endpoint environment variables:
 
 ```bash
-export L1_WS=<your-l1-ws-endpoint>
-export L1_BEACON_URL=<your-l1-beacon-http-endpoint>
+export L1_ENDPOINT_WS=<your-l1-ws-endpoint>
+export L1_BEACON_HTTP=<your-l1-beacon-http-endpoint>
+export PUBLIC_IP=<your-external-ip>
+export PRIV_RAW=<your-p2p-private-key>
 ```
 
 :::code-group
@@ -388,17 +418,15 @@ export L1_BEACON_URL=<your-l1-beacon-http-endpoint>
 ```bash [Mainnet]
 ./bin/taiko-client driver \
   --l1.ws "${L1_ENDPOINT_WS}" \
-  --l2.ws ws://localhost:28546 \
+  --l2.ws ws://localhost:8546 \
   --l1.beacon "${L1_BEACON_HTTP}" \
-  --l2.auth http://localhost:28551 \
-  --pacayaInbox 0x06a9Ab27c7e2255df1815E6CC0168d7755Feb19a \
-  --shastaInbox 0x6f21C543a4aF5189eBdb0723827577e1EF57ef1f \
+  --l2.auth http://localhost:8551 \
+  --inbox 0x6f21C543a4aF5189eBdb0723827577e1EF57ef1f \
   --taikoAnchor 0x1670000000000000000000000000000000010001 \
-  --shasta.time 1775135700 \
-  --preconfirmation.whitelist 0xFD019460881e6EeC632258222393d5821029b2ac \
+  --verbosity 3 \
   --jwtSecret ./jwt.txt \
   --p2p.sync \
-  --p2p.checkPointSyncUrl https://rpc.mainnet.taiko.xyz
+  --p2p.checkPointSyncUrl https://rpc.mainnet.taiko.xyz \
   --p2p.bootnodes enode://c263741b17759f3850d24d67d6c3cbc307c73e17d80c6b12a63a4792a10529d1125d00ecf7ef4c9b0dc51d28b94dfc1b8798fb524f61a1f93946748649f73b23@34.142.239.251:4001?discport=30304,enode://2f37c3affd83274b262fa2a259d32d41510dd5a48d6e916696efe7f1598cb3f905305f5989e7b6607aab50697fb2e52cb4b6904116ed67cc5fcea1e6d66ccaba@35.247.159.156:4001?discport=30304,enode://dd83dedeff622ecfca0c5edf320266506c811539a553ddd91589cdfcc9bbd74d0d620f251d8d5e1180f19a446abbdd8b6b5301e9aa6cbad35cfd9716f80f2416@34.126.90.255:4001?discport=30304,enode://0e917d0fd54e25cd9815aa552550c938dfccafb1b09e613d1b5f344236dc2a93cdac9508a9e570a4e1a315ca7762de51f41c4a90361519d972fdd6715bb3f4f3@51.210.195.167:4001?discport=30303 \
   --p2p.listen.ip 0.0.0.0 \
   --p2p.advertise.ip ${PUBLIC_IP} \
@@ -409,15 +437,16 @@ export L1_BEACON_URL=<your-l1-beacon-http-endpoint>
   --p2p.peerstore.path /node-keys/peerstore \
   --p2p.discovery.path /node-keys/discv5 \
   --preconfirmation.serverPort 9871 \
+  --preconfirmation.jwtSecret ./jwt.txt \
   --p2p.useragent taiko \
-  --p2p.priv.raw "${WALLET_PRIV_KEY}"
+  --p2p.priv.raw "${PRIV_RAW}"
 ```
 
 ```bash [Hoodi Testnet]
 ./bin/taiko-client driver \
-  --l1.ws ${L1_WS} \
+  --l1.ws "${L1_ENDPOINT_WS}" \
   --l2.ws ws://localhost:8546 \
-  --l1.beacon ${L1_BEACON_URL} \
+  --l1.beacon "${L1_BEACON_HTTP}" \
   --l2.auth http://localhost:8551 \
   --inbox 0xeF4bB7A442Bd68150A3aa61A6a097B86b91700BF \
   --taikoAnchor 0x1670130000000000000000000000000000010001 \
@@ -436,8 +465,8 @@ export L1_BEACON_URL=<your-l1-beacon-http-endpoint>
   --p2p.advertise.tcp 4001 \
   --p2p.listen.udp 30303 \
   --p2p.advertise.udp 30303 \
-  --p2p.advertise.ip ${YOUR_EXTERNAL_IP} \
-  --p2p.priv.raw ${PRIVATE_KEY}
+  --p2p.advertise.ip ${PUBLIC_IP} \
+  --p2p.priv.raw "${PRIV_RAW}"
 ```
 
 :::
@@ -476,12 +505,14 @@ http://localhost:3001/d/L2ExecutionEngine/l2-execution-engine-overview
 | Start | `docker compose up -d` |
 | Stop | `docker compose down` |
 | Restart | `docker compose down && docker compose up -d` |
-| Update | `git pull origin main && docker compose pull` |
+| Update | `git checkout <release-tag> && docker compose pull` |
 | Remove (with data) | `docker compose down -v` |
 | View all logs | `docker compose logs -f` |
-| View execution logs | `docker compose logs -f l2_execution_engine` |
+| View execution logs | `docker compose logs -f reth_execution_engine` |
 | View driver logs | `docker compose logs -f taiko_client_driver` |
 | Resource usage | `docker stats` |
+
+For Hoodi testnet, add `-f docker-compose-hoodi.yml` to the Docker Compose commands.
 
 ## Troubleshooting
 
