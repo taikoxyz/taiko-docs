@@ -1,7 +1,7 @@
 // Post-build pass that:
-//   1. Replaces every __SITE_URL__ sentinel in the build output with the
+//   1. Replaces every site URL sentinel in the build output with the
 //      resolved siteUrl (catches Vite's public-dir copies, Vocs's .md/.txt
-//      exports, and pre-rendered HTML).
+//      exports, Vite's transform pipeline, and pre-rendered HTML).
 //   2. Emits sitemap.xml + robots.txt so search engines can crawl and index
 //      the site. Non-production builds get a Disallow-all robots so Vercel
 //      previews never compete with the production domain.
@@ -13,7 +13,7 @@
 // See node_modules/vocs/_lib/vite/utils/resolveOutDir.js.
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { join, relative, sep } from 'node:path'
-import { siteUrl } from './site-url.mjs'
+import { siteUrl, substituteSiteUrl } from './site-url.mjs'
 
 const outDir = process.env.VERCEL ? '.vercel/output/static' : 'docs/dist'
 if (!existsSync(outDir)) {
@@ -24,6 +24,15 @@ const textExts = new Set(['.md', '.txt', '.json', '.html', '.js'])
 
 let replaced = 0
 const htmlRoutes = []
+
+const normalizeRouteMeta = (contents, route) => {
+  const routeOgUrl = `<meta property="og:url" content="${siteUrl}${route}"/>`
+  if (!contents.includes(routeOgUrl)) return contents
+
+  // Vocs v1.4.1 emits a second og:url using baseUrl only. Keep the routed tag.
+  return contents.replace(`<meta property="og:url" content="${siteUrl}"/>`, '')
+}
+
 const walk = (dir) => {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry)
@@ -31,15 +40,19 @@ const walk = (dir) => {
       walk(full)
       continue
     }
+    let route
     if (entry === 'index.html') {
       const rel = relative(outDir, full).split(sep).slice(0, -1).join('/')
-      htmlRoutes.push(rel ? `/${rel}` : '/')
+      route = rel ? `/${rel}` : '/'
+      htmlRoutes.push(route)
     }
     const dot = entry.lastIndexOf('.')
     if (dot < 0 || !textExts.has(entry.slice(dot))) continue
     const contents = readFileSync(full, 'utf8')
-    if (!contents.includes('__SITE_URL__')) continue
-    writeFileSync(full, contents.replaceAll('__SITE_URL__', siteUrl))
+    let next = substituteSiteUrl(contents)
+    if (route) next = normalizeRouteMeta(next, route)
+    if (next === contents) continue
+    writeFileSync(full, next)
     replaced += 1
   }
 }

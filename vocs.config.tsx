@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { defineConfig } from 'vocs'
-import { siteUrl } from './scripts/site-url.mjs'
+import { siteUrl, siteUrlPlaceholder } from './scripts/site-url.mjs'
 
 // Vercel previews and local builds emit `noindex` so they don't compete with
 // the production domain in search.
@@ -97,8 +97,8 @@ export default defineConfig({
       items: [
         { text: 'Overview', link: '/protocol/overview' },
         { text: 'Based Rollups', link: '/protocol/based-rollups' },
+        { text: 'Unzen Fork (Future)', link: '/protocol/unzen-fork' },
         { text: 'Shasta Fork (Current)', link: '/protocol/shasta-fork' },
-        { text: 'Pacaya Fork', link: '/protocol/pacaya-fork' },
         { text: 'Proving System', link: '/protocol/proving-system' },
         { text: 'Bridging', link: '/protocol/bridging' },
         { text: 'Economics', link: '/protocol/economics' },
@@ -126,7 +126,7 @@ export default defineConfig({
   vite: {
     plugins: [
       {
-        // Dev-server substitution: rewrites __SITE_URL__ in .mdx files at
+        // Dev-server substitution: rewrites SITEURLPLACEHOLDER in .mdx files at
         // load time so `pnpm dev` shows http://localhost:5173. The static
         // build is handled by scripts/substitute-site-url.mjs running after
         // `vocs build` — this hook is a dev-mode convenience only.
@@ -134,8 +134,8 @@ export default defineConfig({
         enforce: 'pre',
         transform(code, id) {
           if (!id.includes('.mdx')) return null
-          if (!code.includes('__SITE_URL__')) return null
-          return { code: code.replaceAll('__SITE_URL__', siteUrl), map: null }
+          if (!code.includes(siteUrlPlaceholder)) return null
+          return { code: code.replaceAll(siteUrlPlaceholder, siteUrl), map: null }
         },
       },
     ],
