@@ -44,15 +44,17 @@ export default defineConfig({
   // noindex so they never outrank production.
   head({ path }) {
     const url = `${siteUrl}${path}`
-    return (
-      <>
-        <link rel="canonical" href={url} />
-        <meta property="og:url" content={url} />
-        <meta property="og:site_name" content="Taiko Docs" />
-        <meta property="og:locale" content="en_US" />
-        <meta name="twitter:site" content="@taikoxyz" />
-        {!isProdBuild && <meta name="robots" content="noindex, nofollow" />}
-      </>
+    return React.createElement(
+      React.Fragment,
+      null,
+      React.createElement('link', { rel: 'canonical', href: url }),
+      React.createElement('meta', { property: 'og:url', content: url }),
+      React.createElement('meta', { property: 'og:site_name', content: 'Taiko Docs' }),
+      React.createElement('meta', { property: 'og:locale', content: 'en_US' }),
+      React.createElement('meta', { name: 'twitter:site', content: '@taikoxyz' }),
+      !isProdBuild
+        ? React.createElement('meta', { name: 'robots', content: 'noindex, nofollow' })
+        : null,
     )
   },
 
@@ -129,7 +131,7 @@ export default defineConfig({
         // Dev-server substitution: rewrites SITEURLPLACEHOLDER in .mdx files at
         // load time so `pnpm dev` shows http://localhost:5173. The static
         // build is handled by scripts/substitute-site-url.mjs running after
-        // `vocs build` — this hook is a dev-mode convenience only.
+        // `vocs build` -- this hook is a dev-mode convenience only.
         name: 'docs-site-url-dev',
         enforce: 'pre',
         transform(code, id) {

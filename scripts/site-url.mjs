@@ -1,4 +1,4 @@
-// Shared site-URL resolution for vocs.config.tsx (dev + Vite transform) and
+// Shared site-URL resolution for vocs.config.ts (dev + Vite transform) and
 // scripts/substitute-site-url.mjs (post-build pass over dist/).
 //
 // Keep this token free of Markdown emphasis characters. Vocs serializes the
