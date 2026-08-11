@@ -11,7 +11,7 @@ In a traditional rollup, a dedicated sequencer (often a single operator) collect
 In a based rollup:
 
 - **L1 validators are the sequencers.** Ethereum's existing block proposers include rollup transactions in L1 blocks. The ordering of rollup transactions is determined by the same consensus mechanism that orders all Ethereum transactions.
-- **Proposal inclusion still inherits Ethereum ordering.** In the current Shasta rollout, the normal proposing path is preconf-whitelisted, but the proposal transactions themselves are still ordered by Ethereum L1, and forced inclusion preserves a permissionless fallback path.
+- **Proposal inclusion still inherits Ethereum ordering.** In the current Unzen rollout, the normal proposing path is preconf-whitelisted, but the proposal transactions themselves are still ordered by Ethereum L1, and forced inclusion preserves a permissionless fallback path.
 - **No separate consensus.** There is no additional proof-of-stake network, no sequencer committee, and no external coordination layer. The rollup inherits Ethereum's consensus directly.
 
 ## How Block Proposing Works on Taiko
@@ -22,7 +22,7 @@ Under the **Shasta** architecture, proposers interact with the **Inbox** contrac
 2. The proposer calls `propose` on `Inbox`, submitting proposal data through blob-backed derivation sources.
 3. If forced inclusions are due, they must be processed first, and the proposer's own source is appended last.
 4. The proposal transaction is included in an Ethereum L1 block, and its ordering is determined by Ethereum's consensus.
-5. In the current Shasta rollout, normal proposing is gated by the preconfirmation whitelist. If forced inclusions remain old enough, proposing becomes permissionless as a fallback.
+5. In the current Unzen rollout, normal proposing is gated by the preconfirmation whitelist. If forced inclusions remain old enough, proposing becomes permissionless as a fallback.
 
 This means the fast path is not fully permissionless today, but the protocol still preserves a permissionless escape hatch when forced inclusions age out. Transaction ordering within each proposal is still determined by the proposer, while proposal ordering itself follows Ethereum's block ordering.
 
