@@ -4,7 +4,7 @@ Taiko is an **Ethereum-equivalent (type-1) based rollup** that scales Ethereum w
 
 ## What Makes Taiko Different
 
-**Based rollup.** Ethereum L1 validators order Taiko proposal transactions on L1. Under the current Shasta rollout, the fast proposing path is preconf-whitelisted, with permissionless fallback preserved through forced inclusion rules. See [Based Rollups](/protocol/based-rollups) for a deep dive.
+**Based rollup.** Ethereum L1 validators order Taiko proposal transactions on L1. Under the current Unzen fork, the fast proposing path is preconf-whitelisted, with permissionless fallback preserved through forced inclusion rules. See [Based Rollups](/protocol/based-rollups) for a deep dive.
 
 **Type-1 ZK-EVM.** Taiko runs an unmodified Ethereum execution layer. Every opcode, every precompile, every tool that works on Ethereum works on Taiko without modification. Developers deploy the same Solidity contracts with the same tooling (Hardhat, Foundry, etc.) -- no code changes needed.
 
@@ -24,7 +24,7 @@ Taiko is an **Ethereum-equivalent (type-1) based rollup** that scales Ethereum w
 
 ## How Blocks Flow Through the Protocol
 
-Under Shasta, a Taiko block moves through two protocol states: **proposed**, then **proved and finalized** in a single step.
+Under Unzen's Shasta-based protocol architecture, a Taiko block moves through two protocol states: **proposed**, then **proved and finalized** in a single step.
 
 ### 1. Proposed
 
@@ -36,7 +36,7 @@ At this point, the proposal exists on L1 but has not yet advanced finalization. 
 
 Provers generate validity proofs for a contiguous range of proposals. The proof submitted to `Inbox.prove` is checked through a composed verifier, with sufficient proof pairs such as `sgxGeth + sgxReth`, `sgxGeth + RISC0`, or `sgxReth + SP1`.
 
-In Shasta, a successful proof submission finalizes the proven range directly. `Inbox` checks that the range links to the current finalized head, writes a checkpoint into the signal service, and updates the finalized proposal ID and block hash. There is no separate post-proving finalization step: once a proposal range is proved, it is final.
+In Unzen, a successful proof submission finalizes the proven range directly through the Shasta checkpoint-finalization model. `Inbox` checks that the range links to the current finalized head, writes a checkpoint into the signal service, and updates the finalized proposal ID and block hash. There is no separate post-proving finalization step: once a proposal range is proved, it is final.
 
 :::info
 Taiko still allows parallel proof generation, but finalization remains sequential. A proof can cover a range that overlaps already finalized proposals, yet it must advance finalization by at least one new proposal and connect cleanly to the latest finalized state.
@@ -49,11 +49,11 @@ Taiko still allows parallel proof generation, but finalization remains sequentia
 | **Proposed** | Submitted to `Inbox` on L1. Data is available for derivation, but the proposal has not yet advanced finalization. | Soft -- derivable but not finalized by the protocol. |
 | **Proved and Finalized** | A valid proof has been accepted, the proven range has advanced the finalized proposal head, and a checkpoint has been written to the signal service. | Final at the protocol level, with L1-backed checkpointing. |
 
-A Taiko L2 block also inherits Ethereum's **Safe** and **Finalized** designations through its L1 origin. Each L2 block maps to an L1 origin block. If that L1 block is Safe, the L2 block is also considered Safe. Shasta finalization is the protocol's own ordered checkpoint-finalization step on top of that L1 anchoring model.
+A Taiko L2 block also inherits Ethereum's **Safe** and **Finalized** designations through its L1 origin. Each L2 block maps to an L1 origin block. If that L1 block is Safe, the L2 block is also considered Safe. Unzen's Shasta-based finalization is the protocol's own ordered checkpoint-finalization step on top of that L1 anchoring model.
 
-## Current Protocol Design: Shasta Fork
+## Current Protocol Design: Unzen Fork
 
-The Shasta fork reorganized the protocol around proposals, checkpoint-driven finalization, and explicit L1/L2 routing.
+Taiko is currently on the **Unzen fork**. Unzen runs on the **Shasta fork protocol architecture**, which reorganized the protocol around proposals, checkpoint-driven finalization, and explicit L1/L2 routing. Unzen keeps that architecture and adds execution-layer changes such as block-level zk gas metering.
 
 **Proposal-based derivation.** Blocks are organized around proposals handled by a separate `Inbox`
 
@@ -73,6 +73,7 @@ The Shasta fork reorganized the protocol around proposals, checkpoint-driven fin
 
 - [Based Rollups](/protocol/based-rollups) -- how L1-sequenced block ordering works
 - [Unzen Fork](/protocol/unzen-fork) -- Shasta-based proposal derivation, checkpoint finalization, and zk-gas metering
+- [Shasta Fork](/protocol/shasta-fork) -- protocol architecture used by the current Unzen fork
 - [Proving System](/protocol/proving-system) -- multi-proof verification architecture
 - [Bridging](/protocol/bridging) -- cross-chain messaging and asset transfers
 - [Economics](/protocol/economics) -- fees, bonds, and token utility

@@ -1,76 +1,14 @@
-# Unzen Fork [Shasta-based protocol fork with proposal derivation, checkpoint finalization, and block-level zk gas metering.]
+# Unzen Fork [Current protocol fork introducing block-level zk gas metering.]
 
-Unzen runs on the **Shasta protocol architecture**. It uses Shasta's proposal-based derivation, checkpoint-driven finalization, and explicit L1/L2 routing model, then adds **zk gas** as a protocol-level budget for proving work.
+Unzen is the current Taiko protocol fork. It runs on the **Shasta protocol architecture** and introduces **zk gas** as a protocol-level budget for proving work.
 
-Instead of limiting blocks only by ordinary EVM gas, Unzen adds a separate weighted gas metric that reflects how expensive different opcodes and precompiles are to prove. The objective is to cap proving time per block with a protocol constant, `BLOCK_ZK_GAS_LIMIT`, so a block cannot be valid if it would require more proving work than the protocol budget allows.
+Instead of limiting blocks only by ordinary EVM gas, Unzen adds a separate weighted gas metric that reflects how expensive different opcodes and precompiles are to prove.
+
+The objective is to cap proving time per block with a protocol constant, `BLOCK_ZK_GAS_LIMIT`, so a block cannot be valid if it would require more proving work than the protocol budget allows.
 
 For the source protocol details, see the upstream [ZK Gas specification](https://github.com/taikoxyz/taiko-mono/blob/main/packages/protocol/docs/zk_gas_spec.md).
 
-## Shasta Protocol Architecture
-
-Shasta superseded Pacaya and reworked Taiko around a separate inbox, proposal-based derivation, and explicit routing for checkpoints and anchoring. Unzen keeps that architecture as its protocol base.
-
-### Proposal-Based Derivation
-
-Shasta organizes L2 block construction around **proposals** rather than the older batch terminology.
-
-Under this model:
-
-- proposals are identified by sequential proposal IDs
-- proposal data is carried in blob-backed derivation sources
-- forced inclusions are processed first and the proposer's source is appended last
-
-This keeps forced inclusion inside the normal proposal pipeline rather than treating it as a side path.
-
-### Sequential Finalization with Checkpoints
-
-Shasta keeps proving on Ethereum L1, but finalization is explicitly checkpoint-driven.
-
-In practice:
-
-- `ShastaInbox` accepts proposals and proofs for contiguous proposal ranges
-- successful proving advances finalization in order
-- finalization writes a checkpoint into the signal service
-
-This gives the rest of the protocol a fresh L1-backed checkpoint as proposal ranges finalize.
-
-### L1/L2 Routing and Anchoring
-
-Shasta also changes how L1 state is reflected on L2.
-
-- `Anchor` stores anchored L1 checkpoints on L2 and records metadata used by the preconfirmation flow
-- `SignalServiceForkRouter` switches signal-service behavior across the Pacaya/Shasta fork boundary
-- the fork routing model lets Pacaya-era and Shasta-era logic coexist cleanly during transition
-
-This is one of the main architectural differences from the simpler Pacaya overview.
-
-### Preconfirmation-Oriented Permissioning
-
-Shasta is built to support the staged preconfirmation rollout.
-
-It introduces:
-
-- proposer authorization through `PreconfWhitelist`
-- prover whitelisting with permissionless fallback after delay
-- permissionless proposal fallback when forced inclusions stay too old
-
-These controls keep the fast path structured without removing the protocol's escape hatches.
-
-### Key Contract Changes
-
-Shasta introduces or elevates several contracts:
-
-- `ShastaInbox` becomes the Shasta L1 protocol entry point
-- `Anchor` becomes the Shasta L2 anchoring contract
-- `PreconfWhitelist` controls proposer authorization
-- `ProverWhitelist` controls early proving access
-- `SignalServiceForkRouter` handles cross-fork signal-service routing
-
-See [Preconfirmations](/protocol/preconfirmations), [Proving System](/protocol/proving-system), and [Contract Addresses](/network/contract-addresses) for related details.
-
-## Unzen Execution Changes
-
-### EVM Version: Osaka
+## EVM Version: Osaka
 
 Unzen targets the **Osaka** EVM version. This will make the Cancun, Prague, and Osaka execution-layer features available to contracts.
 
@@ -81,7 +19,7 @@ The main contract-facing additions are:
 - Osaka opcode: `CLZ` (`0x1e`), exposed by Solidity inline assembly as `clz`
 - Osaka precompile: `P256VERIFY` for secp256r1 signature verification at address `0x100`
 
-### Block-Level ZK Gas Limit
+## Block-Level ZK Gas Limit
 
 Unzen defines `BLOCK_ZK_GAS_LIMIT` as the maximum cumulative zk gas allowed in a block.
 
@@ -102,7 +40,7 @@ If cumulative zk gas exceeds the block limit during execution:
 
 This makes the zk gas limit a block validity constraint rather than a mempool policy or local prover preference.
 
-### Weighted Opcode Metering
+## Weighted Opcode Metering
 
 `zk gas` is calculated by multiplying normal EVM gas spent by a proving-cost multiplier.
 
@@ -118,7 +56,7 @@ The multiplier table is derived from per-opcode proving-time benchmarks. Expensi
 
 Unlisted opcodes default to `max(uint16)` as a fail-safe, making missing multiplier entries immediately exceed practical limits.
 
-### Precompile Metering
+## Precompile Metering
 
 Precompiles require explicit metering because they do not execute through the normal opcode loop.
 
@@ -138,7 +76,7 @@ precompile_zk_gas = precompile_gas_used * precompile_multiplier[address]
 
 This keeps heavyweight precompiles such as `modexp`, point evaluation, BLAKE2F, and pairing operations represented in the block's proving budget.
 
-### Spawn Opcode Estimation
+## Spawn Opcode Estimation
 
 Spawn opcodes need special handling because they can create child execution frames and pre-charge parent gas with a child execution budget.
 

@@ -66,7 +66,8 @@ export default defineConfig({
       items: [
         { text: 'Overview', link: '/protocol/overview' },
         { text: 'Based Rollups', link: '/protocol/based-rollups' },
-        { text: 'Unzen Fork', link: '/protocol/unzen-fork' },
+        { text: 'Unzen Fork (Current)', link: '/protocol/unzen-fork' },
+        { text: 'Shasta Fork', link: '/protocol/shasta-fork' },
         { text: 'Proving System', link: '/protocol/proving-system' },
         { text: 'Bridging', link: '/protocol/bridging' },
         { text: 'Economics', link: '/protocol/economics' },
