@@ -1,6 +1,8 @@
-# Shasta Fork [Taiko's current protocol fork — proposal-based derivation and checkpoint-driven finalization.]
+# Shasta Fork [Protocol architecture for proposal-based derivation and checkpoint-driven finalization.]
 
-Shasta is the **current Taiko protocol fork**, superseding Pacaya. It builds on Pacaya's blob-based, proof-driven architecture and reworks the protocol around a separate inbox, proposal-based derivation, and explicit L1/L2 routing for checkpoints and anchoring.
+Shasta is the protocol architecture that Unzen currently runs on. It superseded Pacaya by reworking Taiko around a separate inbox, proposal-based derivation, and explicit L1/L2 routing for checkpoints and anchoring.
+
+Unzen is the current Taiko protocol fork. It keeps Shasta's proposal and finalization architecture, then adds execution-layer changes such as block-level zk gas metering. See [Unzen Fork](/protocol/unzen-fork) for the current fork details.
 
 ## Proposal-Based Derivation
 
@@ -24,7 +26,7 @@ In practice:
 - successful proving advances finalization in order
 - finalization writes a checkpoint into the signal service
 
-This gives the rest of the protocol a fresh L1-backed checkpoint as Shasta proposals finalize.
+This gives the rest of the protocol a fresh L1-backed checkpoint as Shasta-based proposals finalize.
 
 ## L1/L2 Routing and Anchoring
 
