@@ -17,9 +17,9 @@ This means there is no separate public "verified later by cooldown" step in the 
 
 ## Proof Verifier Composition
 
-The inbox does not hardcode a single proving system. Instead, it points at a verifier contract that implements `IProofVerifier`. In the current Shasta deployment is a `ComposeVerifier` over multiple sub-verifiers.
+The inbox does not hardcode a single proving system. Instead, it points at a verifier contract that implements `IProofVerifier`. The current Unzen deployment uses a `ComposeVerifier` over multiple sub-verifiers.
 
-The deployed Shasta verifier set includes:
+The deployed verifier set includes:
 
 | Proof Type | Contract Family | Trust Basis |
 |-----------|------------------|-------------|
@@ -92,7 +92,7 @@ The inbox still defines a late-proof settlement path for configurations that use
 
 That logic is best-effort: if the proposer has less than the configured liveness bond, the inbox debits whatever balance is available and splits that actual amount.
 
-For the current live Shasta configuration, however, this path is effectively dormant because `livenessBond = 0` and proving runs with whitelist mode enabled.
+For the current live Unzen configuration, however, this path is effectively dormant because `livenessBond = 0` and proving runs with whitelist mode enabled.
 
 ## End-to-End Flow
 
