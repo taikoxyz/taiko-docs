@@ -5,14 +5,12 @@ import { siteUrl, siteUrlPlaceholder } from './scripts/site-url.mjs'
 // Vercel previews and local builds emit `noindex` so they don't compete with
 // the production domain in search.
 const isProdBuild = process.env.VERCEL_ENV === 'production'
+const ogLogoUrl = `${siteUrl}/logo-light.svg`
 
 export default defineConfig({
   title: 'Taiko Docs',
   titleTemplate: '%s - Taiko',
   description: 'Documentation for Taiko, a based rollup on Ethereum',
-
-  // Vocs populates <base> from this and uses it as %logo in the OG image API.
-  baseUrl: siteUrl,
 
   logoUrl: { dark: '/logo-dark.svg', light: '/logo-light.svg' },
   iconUrl: '/favicon.svg',
@@ -37,7 +35,7 @@ export default defineConfig({
   // each page's title + description. Object form (not string form) because
   // Vocs's useOgImageUrl short-circuits on strings in v1.4.1.
   ogImageUrl: {
-    '/': 'https://vocs.dev/api/og?logo=%logo&title=%title&description=%description',
+    '/': `https://vocs.dev/api/og?logo=${encodeURIComponent(ogLogoUrl)}&title=%title&description=%description`,
   },
 
   // Per-page <head>: canonical + og:url + twitter completion. Previews get

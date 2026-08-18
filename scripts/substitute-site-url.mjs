@@ -3,8 +3,8 @@
 //      resolved siteUrl (catches Vite's public-dir copies, Vocs's .md/.txt
 //      exports, Vite's transform pipeline, and pre-rendered HTML).
 //   2. Emits sitemap.xml + robots.txt so search engines can crawl and index
-//      the site. Non-production builds get a Disallow-all robots so Vercel
-//      previews never compete with the production domain.
+//      the site. Non-production pages emit noindex in Vocs config; robots.txt
+//      stays crawlable so crawlers can observe that directive.
 //
 // Vocs picks the output directory based on whether it detects Vercel:
 // - Local / CI outside Vercel:  docs/dist
@@ -25,14 +25,6 @@ const textExts = new Set(['.md', '.txt', '.json', '.html', '.js'])
 let replaced = 0
 const htmlRoutes = []
 
-const normalizeRouteMeta = (contents, route) => {
-  const routeOgUrl = `<meta property="og:url" content="${siteUrl}${route}"/>`
-  if (!contents.includes(routeOgUrl)) return contents
-
-  // Vocs v1.4.1 emits a second og:url using baseUrl only. Keep the routed tag.
-  return contents.replace(`<meta property="og:url" content="${siteUrl}"/>`, '')
-}
-
 const walk = (dir) => {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry)
@@ -49,8 +41,7 @@ const walk = (dir) => {
     const dot = entry.lastIndexOf('.')
     if (dot < 0 || !textExts.has(entry.slice(dot))) continue
     const contents = readFileSync(full, 'utf8')
-    let next = substituteSiteUrl(contents)
-    if (route) next = normalizeRouteMeta(next, route)
+    const next = substituteSiteUrl(contents)
     if (next === contents) continue
     writeFileSync(full, next)
     replaced += 1
@@ -62,23 +53,19 @@ console.log(`[site-url] rewrote ${replaced} files in ${outDir} with ${siteUrl}`)
 
 // --- sitemap.xml + robots.txt --------------------------------------------
 const isProd = process.env.VERCEL_ENV === 'production'
-const lastmod = new Date().toISOString().slice(0, 10)
 
 const sitemap =
   `<?xml version="1.0" encoding="UTF-8"?>\n` +
   `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n` +
   htmlRoutes
     .sort()
-    .map(
-      (route) =>
-        `  <url><loc>${siteUrl}${route}</loc><lastmod>${lastmod}</lastmod></url>`,
-    )
+    .map((route) => `  <url><loc>${siteUrl}${route}</loc></url>`)
     .join('\n') +
   `\n</urlset>\n`
 
 const robots = isProd
   ? `User-agent: *\nAllow: /\n\nSitemap: ${siteUrl}/sitemap.xml\n`
-  : `User-agent: *\nDisallow: /\n`
+  : `User-agent: *\nAllow: /\n`
 
 writeFileSync(join(outDir, 'sitemap.xml'), sitemap)
 writeFileSync(join(outDir, 'robots.txt'), robots)
