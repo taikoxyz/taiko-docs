@@ -1,4 +1,4 @@
-# Proving System [Taiko's Shasta proving and verification flow.]
+# Proving System [Taiko's Shasta proving lifecycle — Inbox proposals, SGX and ZK multi-proof verification, and checkpoint-driven L1 finalization for L2 state.]
 
 Under the **Shasta** architecture, Taiko proves L2 state transitions on Ethereum L1 through the `Inbox` and a compose `proofVerifier`. The core idea is still proof diversity, but the lifecycle is no longer the old Pacaya-style `proveBatches` plus `verifyBatches` flow. In Shasta, a successful proof submission advances finalization directly for a contiguous range of proposals.
 

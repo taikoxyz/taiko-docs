@@ -1,5 +1,11 @@
+import * as React from 'react'
 import { defineConfig } from 'vocs'
 import { siteUrl, siteUrlPlaceholder } from './scripts/site-url.mjs'
+
+// Vercel previews and local builds emit `noindex` so they don't compete with
+// the production domain in search.
+const isProdBuild = process.env.VERCEL_ENV === 'production'
+const ogLogoUrl = `${siteUrl}/logo-light.svg`
 
 export default defineConfig({
   title: 'Taiko Docs',
@@ -23,6 +29,31 @@ export default defineConfig({
 
   font: {
     google: 'Public Sans',
+  },
+
+  // Vocs-hosted dynamic OG image API: renders per-page social cards using
+  // each page's title + description. Object form (not string form) because
+  // Vocs's useOgImageUrl short-circuits on strings in v1.4.1.
+  ogImageUrl: {
+    '/': `https://vocs.dev/api/og?logo=${encodeURIComponent(ogLogoUrl)}&title=%title&description=%description`,
+  },
+
+  // Per-page <head>: canonical + og:url + twitter completion. Previews get
+  // noindex so they never outrank production.
+  head({ path }) {
+    const url = `${siteUrl}${path}`
+    return React.createElement(
+      React.Fragment,
+      null,
+      React.createElement('link', { rel: 'canonical', href: url }),
+      React.createElement('meta', { property: 'og:url', content: url }),
+      React.createElement('meta', { property: 'og:site_name', content: 'Taiko Docs' }),
+      React.createElement('meta', { property: 'og:locale', content: 'en_US' }),
+      React.createElement('meta', { name: 'twitter:site', content: '@taikoxyz' }),
+      !isProdBuild
+        ? React.createElement('meta', { name: 'robots', content: 'noindex, nofollow' })
+        : null,
+    )
   },
 
   socials: [
@@ -98,7 +129,7 @@ export default defineConfig({
         // Dev-server substitution: rewrites SITEURLPLACEHOLDER in .mdx files at
         // load time so `pnpm dev` shows http://localhost:5173. The static
         // build is handled by scripts/substitute-site-url.mjs running after
-        // `vocs build` — this hook is a dev-mode convenience only.
+        // `vocs build` -- this hook is a dev-mode convenience only.
         name: 'docs-site-url-dev',
         enforce: 'pre',
         transform(code, id) {
