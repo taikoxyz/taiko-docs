@@ -6,14 +6,18 @@
   "scripts": {
     "dev": "vocs dev",
     "build": "vocs build && node scripts/substitute-site-url.mjs",
-    "preview": "vocs preview"
+    "preview": "vocs preview",
+    "test:e2e": "node node_modules/@playwright/test/cli.js test",
+    "test:e2e:browsers": "node node_modules/@playwright/test/cli.js install chromium"
   },
   "dependencies": {
-    "vocs": "^1.4.1",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "vocs": "^1.4.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/react": "^19.0.0",
     "typescript": "^5.4.5"
   },
   "packageManager": "pnpm@10.32.1"

@@ -33,6 +33,43 @@ jobs:
       - name: Build
         run: pnpm run build
 
+  e2e:
+    if: ${{ github.event.pull_request.draft == false && !startsWith(github.head_ref, 'dependabot') }}
+    runs-on: [arc-runner-set]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v5
+
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install
+
+      # Not `pnpm exec playwright`: vocs ships its own playwright, and which
+      # copy pnpm links into node_modules/.bin varies with install order.
+      - name: Install Playwright browser
+        run: node node_modules/@playwright/test/cli.js install --with-deps chromium
+
+      # Builds the site and serves it -- see playwright.config.ts.
+      - name: Run browser tests
+        run: pnpm run test:e2e
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   typo-check:
     if: ${{ github.event.pull_request.draft == false && !startsWith(github.head_ref, 'dependabot') }}
     runs-on: [arc-runner-set]

@@ -38,15 +38,19 @@ export default defineConfig({
     '/': `https://vocs.dev/api/og?logo=${encodeURIComponent(ogLogoUrl)}&title=%title&description=%description`,
   },
 
-  // Per-page <head>: canonical + og:url + twitter completion. Previews get
-  // noindex so they never outrank production.
-  head({ path }) {
-    const url = `${siteUrl}${path}`
+  // Site-wide <head> tags. Vocs renders this once per page at prerender time
+  // and never re-runs it in the browser, so only route-independent tags belong
+  // here -- canonical and og:url are emitted from docs/layout.tsx so they track
+  // client-side navigation. Previews get noindex so they never outrank
+  // production.
+  //
+  // Stays a function: Vocs treats an object-valued `head` as a path -> element
+  // map, and a bare ReactElement is an object, so the element form silently
+  // emits nothing.
+  head() {
     return React.createElement(
       React.Fragment,
       null,
-      React.createElement('link', { rel: 'canonical', href: url }),
-      React.createElement('meta', { property: 'og:url', content: url }),
       React.createElement('meta', { property: 'og:site_name', content: 'Taiko Docs' }),
       React.createElement('meta', { property: 'og:locale', content: 'en_US' }),
       React.createElement('meta', { name: 'twitter:site', content: '@taikoxyz' }),
@@ -124,6 +128,12 @@ export default defineConfig({
   ],
 
   vite: {
+    // docs/layout.tsx runs in the browser, where neither process.env nor the
+    // build-time siteUrl chain exists -- inline the resolved value instead.
+    define: {
+      __DOCS_SITE_URL__: JSON.stringify(siteUrl),
+    },
+
     plugins: [
       {
         // Dev-server substitution: rewrites SITEURLPLACEHOLDER in .mdx files at
