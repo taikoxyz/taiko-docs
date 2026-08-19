@@ -19,3 +19,7 @@ pnpm-debug.log*
 .DS_Store
 .vercel
 .gstack/
+
+# playwright
+test-results/
+playwright-report/

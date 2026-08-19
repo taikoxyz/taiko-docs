@@ -20,6 +20,17 @@ pnpm build
 pnpm preview
 ```
 
+## Tests
+
+Browser tests cover the SEO metadata that has to survive client-side
+navigation. They build the site and serve it themselves, so no dev server needs
+to be running:
+
+```bash
+pnpm test:e2e:browsers  # once, to download Chromium
+pnpm test:e2e
+```
+
 ## AI-readable formats
 
 The site auto-generates machine-readable docs:
