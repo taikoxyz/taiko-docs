@@ -21,12 +21,12 @@ For programmatic bridging, use the `ERC20Vault` contract directly. See [Bridge T
 
 | Framework | Setup for Taiko |
 | --- | --- |
-| **Foundry** (recommended) | Add `[profile.taiko]` with `evm_version = "osaka"` to `foundry.toml`. Build with `FOUNDRY_PROFILE=taiko`. See [Deploy a Contract](/quickstart/deploy). |
-| **Hardhat** | Set `evmVersion: "osaka"` in `hardhat.config.ts` under `solidity.settings`. |
+| **Foundry** (recommended) | Add `[profile.taiko]` with `evm_version = "osaka"` (solc 0.8.29 or newer) to `foundry.toml`. Build with `FOUNDRY_PROFILE=taiko`. See [Deploy a Contract](/quickstart/deploy). |
+| **Hardhat** | Set `evmVersion: "osaka"` in `hardhat.config.ts` under `solidity.settings` (requires solc 0.8.29 or newer). |
 | **Remix** | Select "Osaka" from the EVM version dropdown in compiler settings. |
 
 :::warning
-Taiko runs the **Osaka** EVM. Solidity 0.8.24+ defaults to Cancun, which runs on Taiko; target **Osaka** to use Prague and Osaka features and keep builds deterministic.
+Taiko runs the **Osaka** EVM, so any EVM target up to Osaka runs. Pin **Osaka** (solc 0.8.29 or newer) to use `CLZ`, `P256VERIFY`, and the BLS12-381 precompiles from Solidity and to keep verification metadata consistent. If you still pin `shanghai` from earlier versions of these docs, change it to `osaka`.
 :::
 
 ## Libraries

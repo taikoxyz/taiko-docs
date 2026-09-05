@@ -57,7 +57,7 @@ Each partner's solution is fully open source:
 - [Nethermind Sidecar](https://github.com/NethermindEth/Catalyst)
 
 :::warning
-While the whitelist-based approach is technically permissioned, it is a necessary step for testing preconfirmation -- a feature that impacts nearly every aspect of Taiko's codebase. The protocol preserves censorship resistance through the **ForcedInclusionStore** contract, which allows any user to force transaction inclusion regardless of the preconfer.
+While the whitelist-based approach is technically permissioned, it is a necessary step for testing preconfirmation -- a feature that impacts nearly every aspect of Taiko's codebase. The protocol preserves censorship resistance through **forced inclusion** on the `Inbox` contract, which allows any user to force transaction inclusion regardless of the preconfer.
 :::
 
 ### Stage 2: Secured by Stake (Planned)
@@ -87,16 +87,16 @@ Because preconfers build blocks off-chain, the L2 block time becomes configurabl
 - **Faster block times** (e.g., 500ms) provide better UX but produce more blocks that must be proved and proposed on-chain.
 - **Slower block times** (e.g., 2s) reduce operational costs but increase user-perceived latency.
 
-Under Unzen, a single on-chain proposal can carry many small blocks, keeping L1 gas costs manageable regardless of block frequency.
+A single on-chain proposal can carry many small blocks, keeping L1 gas costs manageable regardless of block frequency.
 
 ## Benefits
 
 - **Faster transaction finality.** Effective confirmation times of 500ms to 2 seconds, compared to 12 seconds without preconfirmations.
 - **Economic security.** Preconfers stake collateral and face slashing for misbehavior, providing economic guarantees beyond trust.
-- **Censorship resistance.** The ForcedInclusionStore contract ensures users can bypass a misbehaving preconfer and force transaction inclusion.
+- **Censorship resistance.** Forced inclusion on the `Inbox` ensures users can bypass a misbehaving preconfer and force transaction inclusion.
 - **Invisible to users.** No changes to wallets, RPCs, or transaction submission are needed.
 - **Client diversity.** Multiple independent preconfer implementations reduce the risk of a single software bug halting the chain.
 
 ## Summary
 
-Based preconfirmations bridge the gap between based rollup decentralization and the fast confirmation times users expect. By allowing elected preconfers to sequence blocks off-chain and then submit them on-chain as Unzen proposals, Taiko achieves sub-second effective confirmation times while preserving its based rollup architecture, censorship resistance guarantees, and Ethereum alignment.
+Based preconfirmations bridge the gap between based rollup decentralization and the fast confirmation times users expect. By allowing elected preconfers to sequence blocks off-chain and then submit them on-chain as proposals, Taiko achieves sub-second effective confirmation times while preserving its based rollup architecture, censorship resistance guarantees, and Ethereum alignment.

@@ -16,7 +16,7 @@ In a based rollup:
 
 ## How Block Proposing Works on Taiko
 
-Under the **Unzen** architecture, proposers interact with the **Inbox** contract deployed on Ethereum L1. The process works as follows:
+Under the **Shasta** protocol architecture (which the current Unzen fork runs on), proposers interact with the **Inbox** contract deployed on Ethereum L1. The process works as follows:
 
 1. A proposer collects pending L2 transactions and constructs one or more L2 blocks.
 2. The proposer calls `propose` on `Inbox`, submitting proposal data through blob-backed derivation sources.
@@ -27,7 +27,7 @@ Under the **Unzen** architecture, proposers interact with the **Inbox** contract
 This means the fast path is not fully permissionless today, but the protocol still preserves a permissionless escape hatch when forced inclusions age out. Transaction ordering within each proposal is still determined by the proposer, while proposal ordering itself follows Ethereum's block ordering.
 
 :::info
-Under the Pacaya fork, blocks were proposed in **batches** rather than individually. Unzen switches to **proposal-based derivation** around the separate `Inbox`, while keeping Ethereum L1 as the ordering layer.
+Under the Pacaya fork, blocks were proposed in **batches** rather than individually. The Shasta fork switched to **proposal-based derivation** around the separate `Inbox`, while keeping Ethereum L1 as the ordering layer; Unzen keeps that model.
 :::
 
 ## Comparison with Other Sequencing Models
@@ -62,7 +62,7 @@ MEV generated on the rollup flows to Ethereum validators rather than being captu
 
 ## Forced Inclusion
 
-Even during the current preconfirmation phase (where whitelisted preconfers sequence blocks), Taiko maintains censorship resistance through the **ForcedInclusionStore** contract. This contract allows any user to submit a transaction and force its inclusion in the L2 chain, regardless of whether the current preconfer chooses to include it.
+Even during the current preconfirmation phase (where whitelisted preconfers sequence blocks), Taiko maintains censorship resistance through **forced inclusion**, built into the `Inbox` contract on L1. Any user can call `saveForcedInclusion` with a blob reference to queue transactions; once a forced inclusion is due, the next proposal must process it before the proposer's own transactions, regardless of whether the current preconfer chooses to include it.
 
 This mechanism ensures that the protocol preserves its based rollup properties even when block building is temporarily delegated to permissioned preconfers.
 
