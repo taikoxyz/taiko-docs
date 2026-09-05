@@ -16,7 +16,7 @@ In a based rollup:
 
 ## How Block Proposing Works on Taiko
 
-Under the **Shasta** architecture, proposers interact with the **Inbox** contract deployed on Ethereum L1. The process works as follows:
+Under the **Unzen** architecture, proposers interact with the **Inbox** contract deployed on Ethereum L1. The process works as follows:
 
 1. A proposer collects pending L2 transactions and constructs one or more L2 blocks.
 2. The proposer calls `propose` on `Inbox`, submitting proposal data through blob-backed derivation sources.
@@ -27,7 +27,7 @@ Under the **Shasta** architecture, proposers interact with the **Inbox** contrac
 This means the fast path is not fully permissionless today, but the protocol still preserves a permissionless escape hatch when forced inclusions age out. Transaction ordering within each proposal is still determined by the proposer, while proposal ordering itself follows Ethereum's block ordering.
 
 :::info
-Under the Pacaya fork, blocks were proposed in **batches** rather than individually. Shasta switches to **proposal-based derivation** around the separate `Inbox`, while keeping Ethereum L1 as the ordering layer.
+Under the Pacaya fork, blocks were proposed in **batches** rather than individually. Unzen switches to **proposal-based derivation** around the separate `Inbox`, while keeping Ethereum L1 as the ordering layer.
 :::
 
 ## Comparison with Other Sequencing Models

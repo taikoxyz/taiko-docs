@@ -1,10 +1,10 @@
-# Proving System [Taiko's Shasta proving lifecycle — Inbox proposals, SGX and ZK multi-proof verification, and checkpoint-driven L1 finalization for L2 state.]
+# Proving System [Taiko's Unzen proving lifecycle — Inbox proposals, SGX and ZK multi-proof verification, and checkpoint-driven L1 finalization for L2 state.]
 
-Under the **Shasta** architecture, Taiko proves L2 state transitions on Ethereum L1 through the `Inbox` and a compose `proofVerifier`. The core idea is still proof diversity, but the lifecycle is no longer the old Pacaya-style `proveBatches` plus `verifyBatches` flow. In Shasta, a successful proof submission advances finalization directly for a contiguous range of proposals.
+Under the **Unzen** architecture, Taiko proves L2 state transitions on Ethereum L1 through the `Inbox` and a compose `proofVerifier`. The core idea is still proof diversity, but the lifecycle is no longer the old Pacaya-style `proveBatches` plus `verifyBatches` flow. In Unzen, a successful proof submission advances finalization directly for a contiguous range of proposals.
 
-## Shasta Proving Model
+## Unzen Proving Model
 
-Shasta organizes L2 data around **proposals** rather than the older batch terminology.
+Unzen organizes L2 data around **proposals** rather than the older batch terminology.
 
 At a high level:
 
@@ -13,7 +13,7 @@ At a high level:
 3. `Inbox` validates the proof range, checks parent-hash continuity, and forwards the proof to its configured `proofVerifier`.
 4. If the proof is valid, `Inbox` writes a checkpoint to the signal service and advances finalization for the proven range.
 
-This means there is no separate public "verified later by cooldown" step in the Shasta inbox flow. Successful proving is what advances finalization.
+This means there is no separate public "verified later by cooldown" step in the Unzen inbox flow. Successful proving is what advances finalization.
 
 ## Proof Verifier Composition
 
@@ -55,20 +55,20 @@ Taiko's verifier set is intentionally mixed:
 
 - **SGX proofs** are generally cheaper and faster to produce, but rely on trusted hardware assumptions.
 - **ZK proofs** are slower and more computationally expensive, but provide a purely cryptographic guarantee.
-- **Client diversity** matters too: the Shasta verifier set spans both geth-based and reth-based proving paths.
+- **Client diversity** matters too: the Unzen verifier set spans both geth-based and reth-based proving paths.
 
 The protocol therefore does not rely on a single verifier family or a single execution client to advance finalization.
 
 ## Prover Permissions
 
-Shasta is designed for the staged preconfirmation rollout, so proving is not simply "anyone at any time".
+Unzen is designed for the staged preconfirmation rollout, so proving is not simply "anyone at any time".
 
 When the `ProverWhitelist` is enabled:
 
 - whitelisted provers can prove immediately
 - non-whitelisted provers can only prove once a proposal is older than `permissionlessProvingDelay`
 
-On the live mainnet Shasta inbox, the proving-related timing parameters are:
+On the live mainnet Unzen inbox, the proving-related timing parameters are:
 
 | Parameter | Value | Purpose |
 |----------|-------|---------|
@@ -124,7 +124,7 @@ Proposer submits proposal(s) to Inbox
 
 ## Summary
 
-Under Shasta, Taiko's proving system is defined by:
+Under Unzen, Taiko's proving system is defined by:
 
 - proposal-range proving through `Inbox.prove`
 - direct finalization on successful proof submission

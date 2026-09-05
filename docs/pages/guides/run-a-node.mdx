@@ -2,20 +2,20 @@
 
 ## Architecture
 
-Taiko nodes still follow Ethereum's execution/consensus split, but in the Shasta architecture the consensus side is driven by Taiko's L1 inbox, proposal derivation rules, and L2 anchoring logic instead of an Ethereum beacon chain. The main components are:
+Taiko nodes still follow Ethereum's execution/consensus split, but in the Unzen architecture the consensus side is driven by Taiko's L1 inbox, proposal derivation rules, and L2 anchoring logic instead of an Ethereum beacon chain. The main components are:
 
 - [`alethia-reth`](https://github.com/taikoxyz/alethia-reth) — the default Reth-based **execution client** in `simple-taiko-node` for Unzen. It executes L2 blocks, maintains chain state, and exposes the JSON-RPC, WebSocket, metrics, and Engine API surfaces that `taiko-client` expects.
 - [`taiko-geth`](https://github.com/taikoxyz/taiko-geth) — a minimally modified fork of `go-ethereum` that remains available as the geth-based execution client.
-- [`taiko-client`](https://github.com/taikoxyz/taiko-mono/tree/main/packages/taiko-client) — the **consensus and rollup driver**. It watches the Shasta inbox on L1, derives L2 blocks from proposal data, tracks finalization, and drives the selected execution client through the Engine API.
+- [`taiko-client`](https://github.com/taikoxyz/taiko-mono/tree/main/packages/taiko-client) — the **consensus and rollup driver**. It watches the Unzen inbox on L1, derives L2 blocks from proposal data, tracks finalization, and drives the selected execution client through the Engine API.
 
-In Shasta, the protocol no longer upgrades the old Pacaya inbox in place. It uses a separate **Shasta Inbox** on L1 for proposing, proving, forced inclusion, and finalization, while the L2 side uses the **TaikoAnchor** plus fork-router contracts to keep pre-fork and post-fork behavior compatible during the transition.
+In Unzen, the protocol no longer upgrades the old Pacaya inbox in place. It uses a separate **Unzen Inbox** on L1 for proposing, proving, forced inclusion, and finalization, while the L2 side uses the **TaikoAnchor** plus fork-router contracts to keep pre-fork and post-fork behavior compatible during the transition.
 
 ### taiko-client roles
 
 | Component | Responsibility |
 | --- | --- |
 | `driver` | Tracks L1 proposals and finalized proposal ranges, derives L2 blocks, and feeds them into the execution engine |
-| `proposer` | Collects transactions and submits Shasta proposals to the L1 inbox, including lookahead data when preconfirmations are enabled |
+| `proposer` | Collects transactions and submits Unzen proposals to the L1 inbox, including lookahead data when preconfirmations are enabled |
 | `prover` | Generates and submits validity proofs that finalize consecutive proposal ranges |
 
 ### Chain synchronization
@@ -27,7 +27,7 @@ At a high level, sync works like this:
 3. If needed, replay finalized L2 blocks through the Engine API
 4. Listen for new `Proposed` events on L1
 5. Reconstruct and execute the corresponding L2 blocks from proposal data and forced inclusions
-6. Keep the L2 head anchored to the L1 checkpoints exposed through the Shasta anchor path
+6. Keep the L2 head anchored to the L1 checkpoints exposed through the Unzen anchor path
 
 If a proposed tx list is invalid, the protocol still advances by constructing an empty anchor-only block rather than halting execution.
 

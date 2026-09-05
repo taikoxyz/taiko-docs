@@ -1,18 +1,20 @@
 # Differences from Ethereum [Key differences between Taiko and Ethereum that affect smart contract development.]
 
-## EVM Version: Shanghai
+## EVM Version: Osaka
 
-Taiko runs the **Shanghai** EVM. Cancun opcodes are **not available**:
+Taiko runs the **Osaka** EVM. The Cancun, Prague, and Osaka execution-layer features are **available**:
 
-| Opcode        | Status          |
-| ------------- | --------------- |
-| `TSTORE`      | Not available   |
-| `TLOAD`       | Not available   |
-| `MCOPY`       | Not available   |
-| `BLOBHASH`    | Not available   |
-| `BLOBBASEFEE` | Not available   |
+| Feature                                  | Status    |
+| ---------------------------------------- | --------- |
+| `TSTORE` / `TLOAD` (transient storage)   | Available |
+| `MCOPY`                                  | Available |
+| `BLOBHASH`                               | Available |
+| `BLOBBASEFEE`                            | Available |
+| BLS12-381 precompiles (`0x0b`–`0x11`)    | Available |
+| `CLZ` (`0x1e`)                           | Available |
+| `P256VERIFY` (`0x100`)                   | Available |
 
-Solidity 0.8.24+ defaults to Cancun. Deploying with default settings causes runtime reverts on Taiko. Set the EVM version explicitly.
+Solidity 0.8.24+ defaults to Cancun, which runs on Taiko. To use Prague and Osaka features and keep builds deterministic, set the EVM version to `osaka` explicitly.
 
 ### Foundry Configuration
 
@@ -20,7 +22,7 @@ Add a `[profile.taiko]` section to `foundry.toml`:
 
 ```toml
 [profile.taiko]
-evm_version = "shanghai"
+evm_version = "osaka"
 ```
 
 Then compile and deploy with:
@@ -39,7 +41,7 @@ module.exports = {
   solidity: {
     version: "0.8.27",
     settings: {
-      evmVersion: "shanghai",
+      evmVersion: "osaka",
     },
   },
 }
@@ -47,7 +49,7 @@ module.exports = {
 
 ### Impact on OpenZeppelin v5
 
-OpenZeppelin Contracts v5 uses transient storage (`TSTORE`/`TLOAD`) in the `ReentrancyGuard` and other contracts. Use OpenZeppelin v4 or pin to v5 releases that support Shanghai-compatible fallbacks.
+OpenZeppelin Contracts v5 uses transient storage (`TSTORE`/`TLOAD`) in the `ReentrancyGuard` and other contracts. These work on Taiko's Osaka EVM without modification.
 
 ## No Centralized Sequencer
 
@@ -80,7 +82,7 @@ Taiko uses a **multi-proof system** requiring multiple independent proof types t
 
 - Taiko uses EIP-1559 for L2 gas pricing.
 - L1 data costs apply for calldata posted to Ethereum.
-- No L1 blob fees (since `BLOBBASEFEE` is unavailable on Taiko L2 itself).
+- No L1 blob fees are charged for L2 transactions.
 
 ## Account Abstraction (ERC-4337)
 

@@ -28,20 +28,22 @@ Taiko is a based rollup on Ethereum. "Based" means Ethereum L1 validators sequen
 ## How Taiko Differs from Ethereum
 
 - **No sequencer**: blocks are proposed by anyone and sequenced by L1 validators
-- **EVM version**: Shanghai. Cancun opcodes (`TSTORE`, `TLOAD`, `MCOPY`, `BLOBHASH`, `BLOBBASEFEE`) are not available. See the "EVM Compatibility" section below for how to configure your tooling.
+- **EVM version**: Osaka. Cancun, Prague, and Osaka opcodes (transient storage, `MCOPY`, blob opcodes, BLS12-381 precompiles, `CLZ`, `P256VERIFY`) are available. See the "EVM Compatibility" section below for how to configure your tooling.
 - **Proving**: multi-proof system requiring multiple independent proof types (SGX and ZK) to agree on every state transition.
 
 Everything else — precompiles, account model, transaction format — is identical to Ethereum.
 
-## EVM Compatibility (Shanghai)
+## EVM Compatibility (Osaka)
 
-Taiko runs on the Shanghai EVM version. If your contracts or dependencies use Cancun-only features (transient storage, mcopy, blob opcodes), they will fail to deploy or execute on Taiko.
+Taiko runs on the Osaka EVM version. Cancun, Prague, and Osaka execution-layer features are available to contracts.
 
-**What does NOT work on Taiko:**
+**What works on Taiko:**
 
-- `TSTORE` / `TLOAD` (transient storage, EIP-1153) — used by some OpenZeppelin v5 ReentrancyGuard variants
+- `TSTORE` / `TLOAD` (transient storage, EIP-1153) — used by OpenZeppelin v5 ReentrancyGuard variants
 - `MCOPY` (EIP-5656)
 - `BLOBHASH` / `BLOBBASEFEE` (EIP-4844)
+- BLS12-381 precompiles (addresses `0x0b`–`0x11`)
+- `CLZ` opcode (`0x1e`) and the `P256VERIFY` precompile (`0x100`)
 
 **How to configure Foundry:**
 
@@ -49,7 +51,7 @@ Add a Taiko profile to your `foundry.toml`:
 
 ```toml
 [profile.taiko]
-evm_version = "shanghai"
+evm_version = "osaka"
 ```
 
 Then build and deploy with the profile:
@@ -64,12 +66,12 @@ FOUNDRY_PROFILE=taiko forge create src/MyContract.sol:MyContract \
 Alternatively, pass the flag directly:
 
 ```bash
-forge build --evm-version shanghai
+forge build --evm-version osaka
 ```
 
-If using Solidity 0.8.24+, the compiler defaults to Cancun. Setting `evm_version = "shanghai"` in your Foundry profile ensures the compiler targets the correct opcode set.
+If using Solidity 0.8.24+, the compiler defaults to Cancun, which runs on Taiko. Setting `evm_version = "osaka"` in your Foundry profile lets you use Prague and Osaka features and keeps builds deterministic.
 
-**Checking your dependencies:** If a library uses transient storage internally (common in newer reentrancy guards), you need a version of that library compatible with Shanghai. Check for `tstore`/`tload` in the library's assembly blocks.
+**Dependencies:** Libraries that use transient storage internally (common in newer reentrancy guards) work on Taiko's Osaka EVM without modification.
 
 ## Tooling
 
@@ -138,7 +140,7 @@ L2 contracts are predeployed at deterministic `0x167013...` addresses:
 ### Deploy a contract
 
 ```bash
-# Using Foundry (recommended) — use the taiko profile to target Shanghai EVM.
+# Using Foundry (recommended) — use the taiko profile to target Osaka EVM.
 # --broadcast is REQUIRED: without it forge create only simulates and nothing deploys.
 FOUNDRY_PROFILE=taiko forge create src/MyContract.sol:MyContract \
   --rpc-url https://rpc.mainnet.taiko.xyz \
@@ -214,7 +216,7 @@ For the bridge UI: `https://bridge.taiko.xyz` or `https://bridge.hoodi.taiko.xyz
 - L2 predeployed contracts are at fixed `0x167000...` addresses — do not search for them.
 - Use Foundry (`forge`, `cast`) as the default CLI tooling unless the user specifies otherwise.
 - When deploying, always verify contracts on the explorer in the same step.
-- Always use `FOUNDRY_PROFILE=taiko` or `--evm-version shanghai` when building or deploying with Foundry.
+- Always use `FOUNDRY_PROFILE=taiko` or `--evm-version osaka` when building or deploying with Foundry.
 - For testnet work, use Hoodi (chain ID 167013) not any deprecated testnet.
 - Contract addresses may update across protocol upgrades. For the canonical latest addresses, check:
   - L1: https://github.com/taikoxyz/taiko-mono/blob/main/packages/protocol/deployments/mainnet-contract-logs-L1.md
