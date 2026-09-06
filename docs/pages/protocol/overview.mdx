@@ -20,7 +20,7 @@ Taiko is an **Ethereum-equivalent (type-1) based rollup** that scales Ethereum w
 | **Anchor** | L2 smart contract that anchors L1 checkpoints and related metadata into the L2 chain. |
 | **Bridge** | Cross-chain messaging system for transferring assets and messages between L1 and L2. |
 | **Signal Service** | Low-level cross-chain signaling contract used by the bridge for Merkle-proof-based message verification. |
-| **ComposeVerifier / MainnetVerifier** | Verifier contract that orchestrates multiple sub-verifiers (SGX, ZK) for multi-proof validation. |
+| **ZkRequiredVerifier** (ComposeVerifier) | Verifier contract that orchestrates multiple sub-verifiers (SGX, ZK) for multi-proof validation and requires at least one ZK proof per proposal range. |
 
 ## How Blocks Flow Through the Protocol
 
@@ -34,7 +34,7 @@ At this point, the proposal exists on L1 but has not yet advanced finalization. 
 
 ### 2. Proved and Finalized
 
-Provers generate validity proofs for a contiguous range of proposals. The proof submitted to `Inbox.prove` is checked through a composed verifier, with sufficient proof pairs such as `sgxGeth + sgxReth`, `sgxGeth + RISC0`, or `sgxReth + SP1`.
+Provers generate validity proofs for a contiguous range of proposals. The proof submitted to `Inbox.prove` is checked through a composed verifier that requires two sub-proofs with at least one ZK proof, such as `sgxGeth + RISC0`, `sgxReth + SP1`, or `RISC0 + SP1`.
 
 In Unzen, a successful proof submission finalizes the proven range directly through the Shasta checkpoint-finalization model. `Inbox` checks that the range links to the current finalized head, writes a checkpoint into the signal service, and updates the finalized proposal ID and block hash. There is no separate post-proving finalization step: once a proposal range is proved, it is final.
 
@@ -65,8 +65,8 @@ Taiko is currently on the **Unzen fork**. Unzen runs on the **Shasta fork protoc
 
 - **Inbox** becomes the main Shasta L1 protocol entry point
 - **Anchor** becomes the Shasta L2 anchoring contract
-- **ComposeVerifier** orchestrates multi-proof verification
-- **ForcedInclusionStore** preserves censorship resistance during the preconfirmation rollout
+- **ZkRequiredVerifier** (a ComposeVerifier) orchestrates multi-proof verification and requires at least one ZK proof per range
+- **Forced inclusion** (built into the Inbox) preserves censorship resistance during the preconfirmation rollout
 - **SignalServiceForkRouter** handles routing across the Pacaya/Shasta fork boundary
 
 ## Further Reading

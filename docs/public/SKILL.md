@@ -28,22 +28,27 @@ Taiko is a based rollup on Ethereum. "Based" means Ethereum L1 validators sequen
 ## How Taiko Differs from Ethereum
 
 - **No sequencer**: blocks are proposed by anyone and sequenced by L1 validators
-- **EVM version**: Osaka. Cancun, Prague, and Osaka opcodes (transient storage, `MCOPY`, blob opcodes, BLS12-381 precompiles, `CLZ`, `P256VERIFY`) are available. See the "EVM Compatibility" section below for how to configure your tooling.
-- **Proving**: multi-proof system requiring multiple independent proof types (SGX and ZK) to agree on every state transition.
+- **EVM version**: Osaka. Transient storage, `MCOPY`, the BLS12-381 precompiles, `CLZ`, and `P256VERIFY` are available. See the "EVM Compatibility" section below for how to configure your tooling.
+- **No blob transactions**: EIP-4844 (type-3) transactions are rejected on L2. `BLOBHASH` always returns `0` and `BLOBBASEFEE` always returns `1` because L2 blocks never carry blobs. Never build a blob transaction for Taiko.
+- **zk gas**: every block is also metered in proving-cost-weighted "zk gas" with a per-block cap (`BLOCK_ZK_GAS_LIMIT`). A transaction that pushes a block over the cap is aborted and its state changes discarded, even with ordinary gas to spare; heavy precompiles (BLS12-381 pairing, `modexp`, point evaluation, BLAKE2F) carry large weights. If a call fails with `zk gas limit exceeded`, split the work; raising the gas limit does not help. See SITEURLPLACEHOLDER/protocol/unzen-fork.
+- **Proving**: multi-proof system in which two independent sub-proofs, at least one of them ZK (RISC0 or SP1), must agree on every proposal range.
 
-Everything else — precompiles, account model, transaction format — is identical to Ethereum.
+Everything else — account model, precompile addresses, and all other transaction types — matches Ethereum.
 
 ## EVM Compatibility (Osaka)
 
-Taiko runs on the Osaka EVM version. Cancun, Prague, and Osaka execution-layer features are available to contracts.
+Taiko runs on the Osaka EVM version. Contracts compiled for any EVM target up to and including Osaka run on Taiko.
 
-**What works on Taiko:**
+**Available on Taiko:**
 
-- `TSTORE` / `TLOAD` (transient storage, EIP-1153) — used by OpenZeppelin v5 ReentrancyGuard variants
+- `TSTORE` / `TLOAD` (transient storage, EIP-1153) — used by OpenZeppelin's `ReentrancyGuardTransient` (v5.1+); the default `ReentrancyGuard` does not use transient storage
 - `MCOPY` (EIP-5656)
-- `BLOBHASH` / `BLOBBASEFEE` (EIP-4844)
 - BLS12-381 precompiles (addresses `0x0b`–`0x11`)
 - `CLZ` opcode (`0x1e`) and the `P256VERIFY` precompile (`0x100`)
+
+**Not available on Taiko:**
+
+- EIP-4844 blob transactions (type-3). The `BLOBHASH` and `BLOBBASEFEE` opcodes execute but always return `0` and `1` respectively.
 
 **How to configure Foundry:**
 
@@ -69,9 +74,9 @@ Alternatively, pass the flag directly:
 forge build --evm-version osaka
 ```
 
-If using Solidity 0.8.24+, the compiler defaults to Cancun, which runs on Taiko. Setting `evm_version = "osaka"` in your Foundry profile lets you use Prague and Osaka features and keeps builds deterministic.
+Solidity's default EVM target changes between compiler releases, and any target up to Osaka runs on Taiko, so an unpinned build works. Pin `evm_version = "osaka"` to use `CLZ`, `P256VERIFY`, and the BLS12-381 precompiles from Solidity and to keep verification metadata consistent. The `osaka` target requires solc 0.8.29 or newer: older compilers reject it, and Foundry silently falls back to the newest target the compiler supports.
 
-**Dependencies:** Libraries that use transient storage internally (common in newer reentrancy guards) work on Taiko's Osaka EVM without modification.
+**Dependencies:** Libraries that use transient storage internally (such as `ReentrancyGuardTransient`) work on Taiko's Osaka EVM without modification. If a project still has `evm_version = "shanghai"` from earlier versions of these docs, change it to `osaka` first; transient-storage code does not compile under a Shanghai target.
 
 ## Tooling
 
@@ -140,7 +145,7 @@ L2 contracts are predeployed at deterministic `0x167013...` addresses:
 ### Deploy a contract
 
 ```bash
-# Using Foundry (recommended) — use the taiko profile to target Osaka EVM.
+# Using Foundry (recommended) — the taiko profile pins the Osaka EVM (solc 0.8.29 or newer).
 # --broadcast is REQUIRED: without it forge create only simulates and nothing deploys.
 FOUNDRY_PROFILE=taiko forge create src/MyContract.sol:MyContract \
   --rpc-url https://rpc.mainnet.taiko.xyz \
@@ -213,10 +218,10 @@ For the bridge UI: `https://bridge.taiko.xyz` or `https://bridge.hoodi.taiko.xyz
 ## Rules for Agents
 
 - Always use the RPC endpoints listed above. Do not guess or fabricate endpoints.
-- L2 predeployed contracts are at fixed `0x167000...` addresses — do not search for them.
+- L2 predeployed contracts are at fixed addresses: `0x167000...` on mainnet and `0x167013...` on Hoodi (see the tables above) — do not search for them.
 - Use Foundry (`forge`, `cast`) as the default CLI tooling unless the user specifies otherwise.
 - When deploying, always verify contracts on the explorer in the same step.
-- Always use `FOUNDRY_PROFILE=taiko` or `--evm-version osaka` when building or deploying with Foundry.
+- Build and deploy with `FOUNDRY_PROFILE=taiko` (or `--evm-version osaka`); this needs solc 0.8.29 or newer. Always pass `--broadcast` to `forge create`.
 - For testnet work, use Hoodi (chain ID 167013) not any deprecated testnet.
 - Contract addresses may update across protocol upgrades. For the canonical latest addresses, check:
   - L1: https://github.com/taikoxyz/taiko-mono/blob/main/packages/protocol/deployments/mainnet-contract-logs-L1.md

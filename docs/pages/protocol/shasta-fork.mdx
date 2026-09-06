@@ -22,7 +22,7 @@ Shasta keeps proving on Ethereum L1, but finalization becomes more explicitly ch
 
 In practice:
 
-- `ShastaInbox` accepts proposals and proofs for contiguous proposal ranges
+- `Inbox` accepts proposals and proofs for contiguous proposal ranges
 - successful proving advances finalization in order
 - finalization writes a checkpoint into the signal service
 
@@ -54,7 +54,7 @@ These controls keep the fast path structured without removing the protocol's esc
 
 Shasta introduces or elevates several contracts:
 
-- `ShastaInbox` becomes the Shasta L1 protocol entry point
+- `Inbox` becomes the Shasta L1 protocol entry point
 - `Anchor` becomes the Shasta L2 anchoring contract
 - `PreconfWhitelist` controls proposer authorization
 - `ProverWhitelist` controls early proving access
