@@ -10,14 +10,18 @@ For the source protocol details, see the upstream [ZK Gas specification](https:/
 
 ## EVM Version: Osaka
 
-Unzen targets the **Osaka** EVM version. This will make the Cancun, Prague, and Osaka execution-layer features available to contracts.
+Unzen runs the **Osaka** EVM version, which makes the Cancun, Prague, and Osaka execution-layer features available to contracts.
 
 The main contract-facing additions are:
 
-- Cancun opcodes: `TSTORE`, `TLOAD`, `MCOPY`, `BLOBHASH`, and `BLOBBASEFEE`
+- Cancun opcodes: `TSTORE`, `TLOAD`, and `MCOPY` (`BLOBHASH` and `BLOBBASEFEE` also execute but always return `0` and `1`: Taiko L2 rejects blob transactions and never carries blobs)
 - Prague precompiles: BLS12-381 operations at addresses `0x0b` through `0x11`
 - Osaka opcode: `CLZ` (`0x1e`), exposed by Solidity inline assembly as `clz`
 - Osaka precompile: `P256VERIFY` for secp256r1 signature verification at address `0x100`
+
+## Proof Verifier: ZK Required
+
+With Unzen (Proposal0019), the mainnet `Inbox` points at `ZkRequiredVerifier`, which accepts two sub-proofs only if at least one of them is a ZK proof (RISC0 or SP1). A TEE-only pair no longer finalizes a range. See [Proving System](/protocol/proving-system).
 
 ## Block-Level ZK Gas Limit
 

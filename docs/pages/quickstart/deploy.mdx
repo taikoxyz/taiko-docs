@@ -1,4 +1,4 @@
-# Deploy a Contract [Deploy and verify Solidity smart contracts on Taiko mainnet with Foundry. Shanghai EVM profile, Etherscan V2 verification, end-to-end.]
+# Deploy a Contract [Deploy and verify Solidity smart contracts on Taiko mainnet with Foundry. Osaka EVM profile, Etherscan V2 verification, end-to-end.]
 
 ## Prompt mode
 
@@ -8,7 +8,7 @@ Paste this into your coding agent:
 Reference SITEURLPLACEHOLDER/SKILL.md
 
 Write a minimal Counter contract at src/Counter.sol, then deploy and verify
-it on Taiko mainnet. Use FOUNDRY_PROFILE=taiko to target Shanghai EVM and
+it on Taiko mainnet. Use FOUNDRY_PROFILE=taiko to target Osaka EVM and
 verify via the Etherscan V2 endpoint:
 https://api.etherscan.io/v2/api?chainid=167000
 ```
@@ -16,7 +16,7 @@ https://api.etherscan.io/v2/api?chainid=167000
 ## Manual mode
 
 :::warning
-Taiko runs the **Shanghai** EVM. Solidity 0.8.24+ defaults to Cancun and emits opcodes (`TSTORE`, `TLOAD`, `MCOPY`, `BLOBHASH`, `BLOBBASEFEE`) that **do not exist** on Taiko. Always set `evm_version = "shanghai"` or your deployment will revert with no useful error.
+Taiko runs the **Osaka** EVM, so any EVM target up to Osaka runs. Pin `evm_version = "osaka"` to use `CLZ`, `P256VERIFY`, and the BLS12-381 precompiles from Solidity and to keep verification metadata consistent; it requires solc 0.8.29 or newer. If you still have `evm_version = "shanghai"` from earlier versions of these docs, change it to `osaka`.
 :::
 
 ### Prerequisites
@@ -41,7 +41,7 @@ Add a Taiko profile to `foundry.toml`:
 
 ```toml
 [profile.taiko]
-evm_version = "shanghai"
+evm_version = "osaka"
 ```
 
 Build with it:
@@ -112,11 +112,10 @@ If your constructor takes arguments, pass them with `--constructor-args` using t
 | Problem | Cause | Fix |
 | --- | --- | --- |
 | `forge create` prints ABI but nothing deploys | Missing `--broadcast` | Add `--broadcast` to the command |
-| Deployment reverts with no error | Wrong EVM version | Set `evm_version = "shanghai"` in `foundry.toml` and rebuild |
-| `EvmError: NotActivated` | Cancun opcode on Shanghai | Same as above — rebuild with `FOUNDRY_PROFILE=taiko` |
 | `insufficient funds` | Not enough ETH on Taiko | Bridge ETH from L1 or use the Hoodi faucet |
+| `zk gas limit exceeded` | The transaction exceeds the block's zk gas budget (proving-heavy work such as pairing or `modexp` calls) | Split the work across transactions or reduce precompile use; raising the gas limit does not help. See [Unzen Fork](/protocol/unzen-fork) |
 | `deprecated V1 endpoint` | Using `api.taikoscan.io/api` | Switch to `https://api.etherscan.io/v2/api?chainid=167000` |
-| `NOTOK: Unable to verify` | EVM version mismatch | Recompile with `evm_version = "shanghai"` and redeploy |
+| `NOTOK: Unable to verify` | Compiler settings differ from the deployed build | Verify with the same `solc` version, EVM version, and optimizer settings used at deploy time (check with `forge config`) |
 | `NOTOK: Already Verified` | Contract is already verified | No action needed — check the explorer |
 | Bytecode mismatch | Compiler version differs | Use the exact `solc` version from your build (check with `forge config`) |
 | Missing constructor args | Args not provided or mis-encoded | Pass `--constructor-args` with the same values used at deploy time |

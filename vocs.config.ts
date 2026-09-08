@@ -112,7 +112,6 @@ export default defineConfig({
     {
       text: 'Resources',
       items: [
-        { text: 'Tack: IPFS for Agents', link: '/resources/tack' },
         { text: 'Developer Tools', link: '/resources/developer-tools' },
         { text: 'FAQ', link: '/resources/faq' },
         { text: 'Getting Support', link: '/resources/getting-support' },

@@ -38,7 +38,7 @@ The [SKILL.md](SITEURLPLACEHOLDER/SKILL.md) file gives your agent:
 
 - **Network config** — RPC endpoints, chain IDs, and explorer URLs for mainnet and testnet
 - **Contract addresses** — Bridge, ERC20Vault, SignalService, token contracts on L1 and L2
-- **EVM compatibility** — Shanghai version requirements and Foundry profile configuration
+- **EVM compatibility** — Osaka EVM notes (what differs from Ethereum) and Foundry profile configuration
 - **Common tasks** — Deploy, verify, bridge, read state — with copy-paste commands
 - **Behavioral rules** — Correct defaults so the agent doesn't guess wrong
 
@@ -69,12 +69,6 @@ Every page is available as raw Markdown by appending `.md` to the URL:
 
 Taiko supports ERC-8004 on both Taiko and Taiko Hoodi, contract addresses for IdentityRegistry and ReputationRegistry can be found [here](/network/contract-addresses#key-tokens--utilities).
 
-## Tack: IPFS storage for agents
-
-[Tack](https://tack.taiko.xyz/) is an agent-native IPFS pinning and retrieval service. One endpoint, no API keys, no accounts — your agent can store and retrieve files autonomously using x402 micropayments.
-
-**[Get started with Tack →](/resources/tack)**
-
 ## Starter prompts
 
 Try these with your agent after loading the skill:
@@ -87,8 +81,8 @@ Try these with your agent after loading the skill:
 
 ## Best practices
 
-- **Always use `FOUNDRY_PROFILE=taiko`.** This ensures Shanghai EVM compilation. Forgetting this is the most common deployment failure.
+- **Pass `--broadcast`.** Without it, `forge create` only simulates the deployment and nothing lands on-chain. This is the most common reason a "successful" deploy has no contract.
 - **Test on Hoodi first.** Chain ID `167013`, RPC `https://rpc.hoodi.taiko.xyz`. Use testnet for iteration before mainnet deployment.
 - **Verify addresses against SKILL.md.** Contract addresses can change across upgrades. Always fetch the latest SKILL.md rather than relying on cached values.
-- **Pin the EVM version.** Even if your Solidity version supports Cancun, Taiko requires Shanghai. Always set `evm_version = "shanghai"`.
+- **Pin the EVM version.** Taiko runs the Osaka EVM, and builds for older targets also run. Set `evm_version = "osaka"` (solc 0.8.29 or newer) via `FOUNDRY_PROFILE=taiko` to use `CLZ`, `P256VERIFY`, and the BLS12-381 precompiles from Solidity and to keep verification metadata consistent.
 - **Include SKILL.md in every prompt.** Agents have no persistent memory of past sessions. Re-inject the skill file each time.

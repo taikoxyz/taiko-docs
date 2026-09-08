@@ -1,5 +1,9 @@
 {
   "buildCommand": "pnpm run build",
   "outputDirectory": "docs/dist",
-  "installCommand": "pnpm install"
+  "installCommand": "pnpm install",
+  "redirects": [
+    { "source": "/resources/tack", "destination": "/resources/developer-tools", "permanent": true },
+    { "source": "/resources/tack.md", "destination": "/resources/developer-tools.md", "permanent": true }
+  ]
 }

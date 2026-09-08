@@ -51,18 +51,27 @@ See [Contract Addresses](/network/contract-addresses) for both Taiko mainnet and
 
 Point your agent at [`/SKILL.md`](SITEURLPLACEHOLDER/SKILL.md). This file is designed for AI consumption and contains everything an agent needs — network details, deployment commands, contract addresses, and common patterns. See also the [Agent Quickstart](/quickstart/agent).
 
-### Why is my contract deployment failing on Taiko?
+### Which EVM version should I target on Taiko?
 
-The most common cause: **Taiko runs the Shanghai EVM**. Solidity 0.8.24+ defaults to the Cancun EVM and emits opcodes (`TSTORE`, `TLOAD`, `MCOPY`, `BLOBHASH`, `BLOBBASEFEE`) that do not exist on Taiko. The deployment will revert with no useful error message.
-
-**Fix:** Set `evm_version = "shanghai"` in your `foundry.toml`:
+**Taiko runs the Osaka EVM**, so contracts compiled for any target up to and including Osaka run. Pin `evm_version = "osaka"` to use `CLZ`, `P256VERIFY`, and the BLS12-381 precompiles from Solidity and to keep verification metadata consistent. It requires solc 0.8.29 or newer.
 
 ```toml
 [profile.taiko]
-evm_version = "shanghai"
+evm_version = "osaka"
 ```
 
-Then build and deploy with `FOUNDRY_PROFILE=taiko forge build`. See [Deploy a Contract](/quickstart/deploy) for the full guide.
+Then build and deploy with `FOUNDRY_PROFILE=taiko forge build`. If your `foundry.toml` still says `evm_version = "shanghai"` from earlier versions of these docs, change it to `osaka`. See [Deploy a Contract](/quickstart/deploy) for the full guide.
+
+### Why is my contract deployment failing on Taiko?
+
+The EVM version is almost never the cause: any target up to Osaka runs on Taiko. Check these first:
+
+- `forge create` printed the ABI but nothing deployed: add `--broadcast`; without it the command only simulates.
+- `insufficient funds`: bridge ETH to Taiko or use the Hoodi faucet.
+- A revert during deployment: constructor arguments are missing or mis-encoded, or the constructor itself reverts.
+- `zk gas limit exceeded`: the transaction does more proving-heavy work than a block allows. See [Unzen Fork](/protocol/unzen-fork).
+
+The [troubleshooting table](/quickstart/deploy#troubleshooting) on the deploy page covers verification errors too.
 
 ### How can I get the L1 block number from L2?
 
@@ -79,10 +88,10 @@ The public RPCs are rate-limited. For production use, consider a third-party RPC
 
 ### Can I use Hardhat or Remix instead of Foundry?
 
-Yes. Taiko is fully Ethereum-equivalent, so any EVM development framework works. The key requirement is setting the EVM target to **Shanghai**:
+Yes. Taiko is fully Ethereum-equivalent, so any EVM development framework works. Target **Osaka** to use the newest features (any older target also runs):
 
-- **Hardhat:** Set `evmVersion: "shanghai"` in `hardhat.config.ts` under `solidity.settings`.
-- **Remix:** Select "Shanghai" from the EVM version dropdown in the compiler settings.
+- **Hardhat:** Set `evmVersion: "osaka"` in `hardhat.config.ts` under `solidity.settings` (requires solc 0.8.29 or newer).
+- **Remix:** Select "Osaka" from the EVM version dropdown in the compiler settings.
 
 Foundry is recommended because it offers the most streamlined deployment and verification workflow for Taiko.
 
@@ -106,7 +115,7 @@ The cross-chain messaging system connecting Ethereum L1 and Taiko L2. The bridge
 
 ### ComposeVerifier
 
-A smart contract that orchestrates multi-proof verification. It requires multiple independent proof systems (e.g., sgxReth + sgxGeth) to agree on a proposal range before accepting it as proved. See [Proving System](/protocol/proving-system).
+A smart contract that orchestrates multi-proof verification. The live mainnet instance, `ZkRequiredVerifier`, requires two independent sub-proofs, at least one of them ZK (for example `sgxReth + risc0` or `risc0 + sp1`), to agree on a proposal range before accepting it as proved. See [Proving System](/protocol/proving-system).
 
 ### ERC20Vault
 
@@ -118,7 +127,7 @@ A mechanism ensuring that transactions cannot be censored by proposers. If a pro
 
 ### Liveness bond
 
-TAIKO tokens deposited by a proposer when submitting a proposal. The bond is returned once the proposal range has been proved (which finalizes it under Shasta). If a proposal is not proved within the proving window, the bond is forfeited. The live Unzen configuration currently runs with a liveness bond of `0`, so this lever is effectively dormant today.
+TAIKO tokens deposited by a proposer when submitting a proposal. The bond is returned once the proposal range has been proved (which finalizes it). If a proposal is not proved within the proving window, the bond is forfeited. The live Unzen configuration currently runs with a liveness bond of `0`, so this lever is effectively dormant today.
 
 ### Preconfirmation
 
@@ -150,7 +159,7 @@ An L2 predeployed contract that anchors L1 state into L2 blocks. Every L2 block 
 
 ### TaikoInbox
 
-The L1 contract where proposers submit L2 block data. Under Shasta, the active entry point is `ShastaInbox`, which accepts proposals (each carrying one or more L2 blocks), forwards proofs to the compose verifier, and advances finalization. The legacy Pacaya `TaikoInbox` is preserved for historical reference. See [Contract Addresses](/network/contract-addresses).
+The L1 contract where proposers submit L2 block data. The active entry point is the `Inbox` contract (introduced by the Shasta architecture and still used under Unzen), which accepts proposals (each carrying one or more L2 blocks), forwards proofs to the compose verifier, and advances finalization. The legacy Pacaya `TaikoInbox` is preserved for historical reference. See [Contract Addresses](/network/contract-addresses).
 
 ### Type-1 ZK-EVM
 

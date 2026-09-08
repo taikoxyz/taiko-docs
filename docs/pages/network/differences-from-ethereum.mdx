@@ -1,18 +1,22 @@
 # Differences from Ethereum [Key differences between Taiko and Ethereum that affect smart contract development.]
 
-## EVM Version: Shanghai
+## EVM Version: Osaka
 
-Taiko runs the **Shanghai** EVM. Cancun opcodes are **not available**:
+Taiko runs the **Osaka** EVM, the same execution-layer feature set as Ethereum mainnet: transient storage (`TSTORE`/`TLOAD`), `MCOPY`, the BLS12-381 precompiles (`0x0b`–`0x11`), `CLZ` (`0x1e`), and `P256VERIFY` (`0x100`) are all available. Contracts compiled for any EVM target up to and including Osaka run on Taiko.
 
-| Opcode        | Status          |
-| ------------- | --------------- |
-| `TSTORE`      | Not available   |
-| `TLOAD`       | Not available   |
-| `MCOPY`       | Not available   |
-| `BLOBHASH`    | Not available   |
-| `BLOBBASEFEE` | Not available   |
+What actually differs from Ethereum at the EVM level:
 
-Solidity 0.8.24+ defaults to Cancun. Deploying with default settings causes runtime reverts on Taiko. Set the EVM version explicitly.
+| Difference | Detail |
+| --- | --- |
+| No blob transactions | EIP-4844 (type-3) transactions are rejected on L2. Taiko posts proposal data to L1 in blobs, but L2 blocks never carry blobs. |
+| `BLOBHASH` / `BLOBBASEFEE` are constants | Both opcodes execute, but `BLOBHASH` always returns `0` and `BLOBBASEFEE` always returns `1`, because there are no blobs on L2. Do not branch on them. |
+| Block-level zk gas budget | Every block is also metered in **zk gas**, a proving-cost-weighted budget capped by `BLOCK_ZK_GAS_LIMIT`. A transaction that pushes a block over the limit is aborted and its state changes are discarded, even if it has ordinary gas left. Heavy precompiles (BLS12-381 pairing, `modexp`, point evaluation, BLAKE2F) carry large weights. See [Unzen Fork](/protocol/unzen-fork). |
+
+### Which EVM Version to Target
+
+Solidity's default EVM target changes between compiler releases, and any target up to Osaka runs on Taiko, so an unpinned build works. Pin `evm_version = "osaka"` when you want `CLZ`, `P256VERIFY`, or the BLS12-381 precompiles from Solidity, and to keep verification metadata consistent across machines. The `osaka` target requires **solc 0.8.29 or newer**: older compilers reject it, and Foundry silently falls back to the newest target the compiler supports.
+
+If your project still has `evm_version = "shanghai"` from earlier versions of these docs, change it to `osaka`; contracts that use transient storage do not compile under a Shanghai target.
 
 ### Foundry Configuration
 
@@ -20,7 +24,7 @@ Add a `[profile.taiko]` section to `foundry.toml`:
 
 ```toml
 [profile.taiko]
-evm_version = "shanghai"
+evm_version = "osaka"
 ```
 
 Then compile and deploy with:
@@ -37,9 +41,9 @@ Set `evmVersion` in your Hardhat config:
 ```js
 module.exports = {
   solidity: {
-    version: "0.8.27",
+    version: "0.8.31", // evmVersion "osaka" requires solc 0.8.29 or newer
     settings: {
-      evmVersion: "shanghai",
+      evmVersion: "osaka",
     },
   },
 }
@@ -47,14 +51,14 @@ module.exports = {
 
 ### Impact on OpenZeppelin v5
 
-OpenZeppelin Contracts v5 uses transient storage (`TSTORE`/`TLOAD`) in the `ReentrancyGuard` and other contracts. Use OpenZeppelin v4 or pin to v5 releases that support Shanghai-compatible fallbacks.
+OpenZeppelin Contracts v5.1+ ships `ReentrancyGuardTransient`, which uses transient storage (`TSTORE`/`TLOAD`); the default `ReentrancyGuard` does not. Both work on Taiko's Osaka EVM without modification, as long as your build no longer pins a pre-Cancun target such as `shanghai`.
 
 ## No Centralized Sequencer
 
 Taiko is a **based rollup** -- L1 Ethereum validators sequence blocks. There is no centralized sequencer.
 
 - Blocks are proposed by whitelisted proposers through preconfirmation infrastructure.
-- Anyone can force-include transactions via the `ForcedInclusionStore` contract on L1.
+- Anyone can force-include transactions through the `Inbox` contract's forced-inclusion queue on L1 (`saveForcedInclusion`).
 - Transaction ordering follows L1 inclusion order.
 
 ## Block Time
@@ -72,15 +76,14 @@ Taiko uses a **multi-proof system** requiring multiple independent proof types t
 | ZK (RISC0)    | RISC Zero zkVM proof                 |
 | ZK (SP1)      | Succinct SP1 proof                   |
 
-- Every batch requires proofs from at least two independent proof systems.
-- The ComposeVerifier contract orchestrates verification across sub-verifiers.
+- Every proposal range requires two sub-proofs from independent proof systems, at least one of which must be a ZK proof (RISC0 or SP1).
+- The `ZkRequiredVerifier` (a `ComposeVerifier`) orchestrates verification across sub-verifiers.
 - This provides both proof diversity and client diversity, reducing correlated failure risk.
 
 ## Gas and Fee Model
 
 - Taiko uses EIP-1559 for L2 gas pricing.
-- L1 data costs apply for calldata posted to Ethereum.
-- No L1 blob fees (since `BLOBBASEFEE` is unavailable on Taiko L2 itself).
+- Proposal data is posted to Ethereum in blobs. That L1 cost is paid by proposers and is not charged as a separate fee component on L2 transactions.
 
 ## Account Abstraction (ERC-4337)
 

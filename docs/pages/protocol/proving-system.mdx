@@ -1,6 +1,6 @@
-# Proving System [Taiko's Shasta proving lifecycle — Inbox proposals, SGX and ZK multi-proof verification, and checkpoint-driven L1 finalization for L2 state.]
+# Proving System [Taiko's proving lifecycle — Inbox proposals, SGX and ZK multi-proof verification, and checkpoint-driven L1 finalization for L2 state.]
 
-Under the **Shasta** architecture, Taiko proves L2 state transitions on Ethereum L1 through the `Inbox` and a compose `proofVerifier`. The core idea is still proof diversity, but the lifecycle is no longer the old Pacaya-style `proveBatches` plus `verifyBatches` flow. In Shasta, a successful proof submission advances finalization directly for a contiguous range of proposals.
+Under the **Shasta** protocol architecture (which the current Unzen fork runs on), Taiko proves L2 state transitions on Ethereum L1 through the `Inbox` and a compose `proofVerifier`. The core idea is still proof diversity, but the lifecycle is no longer the old Pacaya-style `proveBatches` plus `verifyBatches` flow. A successful proof submission advances finalization directly for a contiguous range of proposals.
 
 ## Shasta Proving Model
 
@@ -17,7 +17,7 @@ This means there is no separate public "verified later by cooldown" step in the 
 
 ## Proof Verifier Composition
 
-The inbox does not hardcode a single proving system. Instead, it points at a verifier contract that implements `IProofVerifier`. The current Unzen deployment uses a `ComposeVerifier` over multiple sub-verifiers.
+The inbox does not hardcode a single proving system. Instead, it points at a verifier contract that implements `IProofVerifier`. The current Unzen deployment on mainnet uses `ZkRequiredVerifier`, a `ComposeVerifier` over multiple sub-verifiers that requires at least one ZK proof in every accepted combination.
 
 The deployed verifier set includes:
 
@@ -28,15 +28,15 @@ The deployed verifier set includes:
 | **RISC0** | `Risc0Verifier` | Cryptographic ZK proof |
 | **SP1** | `SP1Verifier` | Cryptographic ZK proof |
 
-The mainnet `Verifier` accepts exactly two sub-proofs in one of these combinations:
+`ZkRequiredVerifier` accepts exactly two sub-proofs, and the second must be a ZK proof:
 
-- `sgxGeth + sgxReth`
 - `sgxGeth + risc0`
 - `sgxGeth + sp1`
 - `sgxReth + risc0`
 - `sgxReth + sp1`
+- `risc0 + sp1`
 
-This keeps proof diversity while allowing the active proof mix to evolve over time.
+A TEE-only pair (`sgxGeth + sgxReth`) is not accepted. This keeps proof diversity while guaranteeing that every finalized range carries a cryptographic proof.
 
 ## How `prove` Works
 
@@ -55,7 +55,7 @@ Taiko's verifier set is intentionally mixed:
 
 - **SGX proofs** are generally cheaper and faster to produce, but rely on trusted hardware assumptions.
 - **ZK proofs** are slower and more computationally expensive, but provide a purely cryptographic guarantee.
-- **Client diversity** matters too: the Shasta verifier set spans both geth-based and reth-based proving paths.
+- **Client diversity** matters too: the verifier set spans both geth-based and reth-based proving paths.
 
 The protocol therefore does not rely on a single verifier family or a single execution client to advance finalization.
 
@@ -68,7 +68,7 @@ When the `ProverWhitelist` is enabled:
 - whitelisted provers can prove immediately
 - non-whitelisted provers can only prove once a proposal is older than `permissionlessProvingDelay`
 
-On the live mainnet Shasta inbox, the proving-related timing parameters are:
+On the live mainnet Unzen inbox, the proving-related timing parameters are:
 
 | Parameter | Value | Purpose |
 |----------|-------|---------|
@@ -112,7 +112,7 @@ Proposer submits proposal(s) to Inbox
  Inbox validates range + prover permissions
         |
         v
- MainnetVerifier / ComposeVerifier routes proof pieces
+ ZkRequiredVerifier (ComposeVerifier) routes proof pieces
  to SGX and/or ZK sub-verifiers
         |
         v
@@ -124,11 +124,11 @@ Proposer submits proposal(s) to Inbox
 
 ## Summary
 
-Under Shasta, Taiko's proving system is defined by:
+Taiko's proving system is defined by:
 
 - proposal-range proving through `Inbox.prove`
 - direct finalization on successful proof submission
-- a compose verifier that accepts sufficient SGX/ZK proof combinations
+- a compose verifier that requires two sub-proofs, at least one of them ZK
 - whitelist-first prover access with permissionless fallback after delay
 
-For the broader protocol context, see [Unzen Fork](/protocol/unzen-fork), [Based Rollups](/protocol/based-rollups), and [Contract Addresses](/network/contract-addresses).
+For the broader protocol context, see [Shasta Fork](/protocol/shasta-fork), [Unzen Fork](/protocol/unzen-fork), [Based Rollups](/protocol/based-rollups), and [Contract Addresses](/network/contract-addresses).
