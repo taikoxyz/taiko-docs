@@ -105,6 +105,7 @@ Contracts developers interact with most on Ethereum mainnet:
 | Bridge             | `0xd60247c6848B7Ca29eDdF63AA924E53dB6Ddd8EC` |
 | SignalService      | `0x9e0a24964e5397B566c1ed39258e21aB5E35C77C` |
 | ERC20Vault         | `0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab` |
+| Permit2            | `0x000000000022D473030F116dDEE9F6B43aC78BA3` |
 
 ## Contract Addresses — Mainnet L2 (Taiko Alethia)
 
@@ -118,6 +119,7 @@ L2 contracts are predeployed at deterministic `0x167000...` addresses:
 | TaikoToken (bridged) | `0xA9d23408b9bA935c230493c40C73824Df71A0975` |
 | USDC (native)        | `0x07d83526730c7438048D55A4fc0b850e2aaB6f0b` |
 | WETH                 | `0xA51894664A773981C6C112C43ce576f315d5b1B6` |
+| Permit2              | `0x000000000022D473030F116dDEE9F6B43aC78BA3` |
 
 ## Contract Addresses — Testnet L1 (Ethereum Hoodi)
 
@@ -209,9 +211,12 @@ Hex chain ID: `0x28C58` (167000 decimal). For Hoodi testnet: `0x28C65` (167013 d
 
 Bridging uses the Bridge contract on L1. Send a message with ETH value to the L1 Bridge:
 
-1. On L1, call `Bridge.sendMessage()` at `0xd60247c6848B7Ca29eDdF63AA924E53dB6Ddd8EC`
-2. For ERC20 tokens, approve the ERC20Vault (`0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab`) then call `sendToken()`
-3. The bridge relayer processes the message — tokens appear on L2 after L1 finalization
+1. On L1, call `Bridge.sendMessage()` at `0xd60247c6848B7Ca29eDdF63AA924E53dB6Ddd8EC`.
+2. For ERC-20 tokens, `ERC20Vault` (`0x996282cA11E5DEb6B5D122CC3B9A1FcAAD4415Ab`) exposes three send paths — pick one:
+   - `sendToken()` — the classic two-transaction flow. Requires a prior `approve` to the vault.
+   - `sendTokenWithPermit()` — one transaction, for tokens that implement EIP-2612 `permit` (including Taiko's own `BridgedERC20V2`). The caller signs the permit off-chain.
+   - `sendTokenWithPermit2()` — one transaction, works for **any** ERC-20 via Uniswap Permit2 at `0x000000000022D473030F116dDEE9F6B43aC78BA3`. Best for tokens without `permit` (USDT, WBTC, and similar) or when the caller has already granted Permit2 an allowance.
+3. The bridge relayer processes the message — tokens appear on L2 after L1 finalization.
 
 For the bridge UI: `https://bridge.taiko.xyz` or `https://bridge.hoodi.taiko.xyz`.
 

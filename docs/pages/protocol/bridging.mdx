@@ -85,6 +85,21 @@ Taiko uses a **vault system** for token bridging. There are three vault contract
 2. The bridged tokens are **burned**.
 3. On the canonical chain, the original vault releases the locked tokens back to the user.
 
+### Approval-free ERC-20 sends: `sendTokenWithPermit` and `sendTokenWithPermit2`
+
+The plain `sendToken` path requires a prior `approve`, so bridging an ERC-20 always costs two transactions. `ERC20Vault` also exposes two entrypoints that fold the approval into the bridge call:
+
+| Entrypoint | When to use |
+|---|---|
+| `sendTokenWithPermit` | The token implements EIP-2612 `permit`. The caller signs the permit off-chain; the vault consumes it and pulls the tokens in the same call. Taiko-minted bridged tokens (`BridgedERC20V2`) support this natively. |
+| `sendTokenWithPermit2` | Works for **any** ERC-20, using Uniswap's [Permit2](https://github.com/Uniswap/permit2). The caller signs a Permit2 `SignatureTransfer` off-chain; the vault pulls the tokens through Permit2. Best for canonical tokens without permit (USDT, WBTC, and similar), or when the caller has already granted Permit2 an allowance elsewhere and wants zero on-chain approvals. |
+
+Both entrypoints match `sendToken`'s message shape, quota accounting, and refund path — a recall still refunds the sender. Permit2 lives at the same address on every chain: `0x000000000022D473030F116dDEE9F6B43aC78BA3`.
+
+:::info
+The EIP-2612 permit call is best-effort: a griefer can burn the signature's nonce by replaying it at the token. `sendTokenWithPermit` therefore checks the resulting allowance and reverts with `VAULT_PERMIT_NO_ALLOWANCE` if it is still insufficient, rather than failing deep inside the token pull. A caller with a standing allowance bridges against it even when the permit itself was consumed.
+:::
+
 ### ETH Bridging
 
 ETH transfers work through the Bridge contract directly:
