@@ -12,7 +12,7 @@ concurrency:
 jobs:
   build:
     if: ${{ github.event.pull_request.draft == false && !startsWith(github.head_ref, 'dependabot') }}
-    runs-on: [arc-runner-set]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -35,7 +35,7 @@ jobs:
 
   e2e:
     if: ${{ github.event.pull_request.draft == false && !startsWith(github.head_ref, 'dependabot') }}
-    runs-on: [arc-runner-set]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -72,7 +72,7 @@ jobs:
 
   typo-check:
     if: ${{ github.event.pull_request.draft == false && !startsWith(github.head_ref, 'dependabot') }}
-    runs-on: [arc-runner-set]
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
