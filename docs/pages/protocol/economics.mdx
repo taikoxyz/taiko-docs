@@ -20,7 +20,7 @@ When a user submits a transaction on Taiko L2, they pay a standard EVM gas fee d
 | **Priority fee** | 100% | L2 block proposer |
 | **Base fee** | 100% | L2 block proposer |
 
-The priority fee incentivizes faster transaction inclusion -- transactions with higher priority fees are more likely to be picked up by proposers (or preconfers). The base fee is determined by EIP-1559 dynamics on L2. Unlike on Ethereum, the L2 base fee is not burned: it is paid to the block's coinbase, which the protocol sets to the address that proposed the block.
+The priority fee incentivizes faster transaction inclusion -- transactions with higher priority fees are more likely to be picked up by proposers (or preconfers). The base fee is determined by EIP-1559 dynamics on L2. Unlike on Ethereum, the L2 base fee is not burned: it is paid to the block's configured coinbase (fee recipient).
 
 ## Proposer Economics
 
